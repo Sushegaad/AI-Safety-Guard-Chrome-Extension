@@ -50,7 +50,9 @@
         "assets/fonts/*.woff2",
         "src/shared/tokens.css",
         "src/shared/fonts.css",
-        "assets/icons/*.png"
+        "assets/icons/*.png",
+        "assets/pdf.worker.min.mjs",
+        "src/content/chunks/*.js"
       ],
       "matches": [
         "https://chatgpt.com/*",

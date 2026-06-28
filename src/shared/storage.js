@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   enabledSites: defaultEnabledSites(), // all supported sites on, from the registry
   customDomains: [],
   disabledCategories: [],
+  scanAttachments: true, // scan attached PDF/DOCX files for PII
   analyticsEnabled: true, // opt-out
   onboardingComplete: false,
   riskySubmissionsCaught: 0, // lifetime counter shown in popup
@@ -74,6 +75,7 @@ export function sanitizePatch(patch = {}) {
       .filter((c) => typeof c === 'string')
       .slice(0, 50);
   }
+  if (has('scanAttachments')) out.scanAttachments = !!patch.scanAttachments;
   if (has('analyticsEnabled')) out.analyticsEnabled = !!patch.analyticsEnabled;
   if (has('onboardingComplete')) out.onboardingComplete = !!patch.onboardingComplete;
   if (has('riskySubmissionsCaught') && Number.isFinite(patch.riskySubmissionsCaught)) {

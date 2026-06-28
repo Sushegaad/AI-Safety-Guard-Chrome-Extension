@@ -46,6 +46,7 @@ const { routeMessage } = await import('./service-worker.js');
 /* --------------------------------------------------------- storage schema */
 ok('schema: sensitivity default balanced', DEFAULT_SETTINGS.sensitivity === 'balanced');
 ok('schema: no rewrite settings (B2 removed)', !('allowRewrite' in DEFAULT_SETTINGS) && !('rewriteApiEndpoint' in DEFAULT_SETTINGS));
+ok('schema: scanAttachments on by default', DEFAULT_SETTINGS.scanAttachments === true);
 ok('schema: analytics on by default', DEFAULT_SETTINGS.analyticsEnabled === true);
 ok('schema: onboarding incomplete by default', DEFAULT_SETTINGS.onboardingComplete === false);
 ok('schema: counter starts at 0', DEFAULT_SETTINGS.riskySubmissionsCaught === 0);
@@ -142,7 +143,8 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
     'popup: balanced pressed by default',
     body.querySelector('.segmented__btn[data-mode="balanced"]').getAttribute('aria-pressed') === 'true'
   );
-  ok('popup: 4 site toggles', body.querySelectorAll('.switch').length === 4);
+  ok('popup: 4 site toggles', body.querySelectorAll('.switch[data-site]').length === 4);
+  ok('popup: scanAttachments toggle present', !!body.querySelector('.switch[data-setting="scanAttachments"]'));
   ok('popup: counter shows 142', body.querySelector('.stat__num').textContent === '142');
 
   // click Strict -> persists SET_SETTINGS

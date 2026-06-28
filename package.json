@@ -9,7 +9,7 @@
     "prebuild": "node scripts/gen-tokens.mjs",
     "build": "npm run lint && webpack --mode production",
     "watch": "webpack --watch --mode development",
-    "test": "node src/content/detector.test.mjs && node src/content/ui.test.mjs && node src/background/phase4.test.mjs",
+    "test": "node src/content/detector.test.mjs && node src/content/ui.test.mjs && node src/background/phase4.test.mjs && node src/content/files/files.test.mjs",
     "lint": "eslint src && npm run lint:css",
     "lint:css": "stylelint \"src/**/*.css\"",
     "bench": "node scripts/perf-bench.mjs",
@@ -30,5 +30,9 @@
     "web-ext": "^8.2.0",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "pdfjs-dist": "^6.1.200"
   }
 }

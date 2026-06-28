@@ -17,6 +17,8 @@ When you type into a supported AI tool (ChatGPT, Claude, Gemini, Perplexity, Mic
 
 This scanning is performed entirely by code running inside your browser. The text is analyzed in memory and discarded; it is not written to disk, sent to any server, or shared with us or anyone else.
 
+When you attach a PDF or Word (.docx) file, the extension reads and extracts the file's text **inside your browser** to scan it for personal data (including hidden comments and document metadata). The file and its contents are never uploaded by the extension to any server. PDF parsing uses a bundled library that runs locally. You can turn attachment scanning off in settings.
+
 ## Information we store
 
 The extension uses your browser's local storage (`chrome.storage.local`) to remember your preferences and one usage counter. Specifically:

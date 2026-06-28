@@ -19,9 +19,17 @@ import { looksLikeSendButton } from './sites/adapter-base.js';
 import { createBadge } from './ui/badge.js';
 import { createModal } from './ui/modal.js';
 import { loadFonts } from './ui/fonts.js';
+import { initAttachWatcher } from './files/attach.js';
+import { extractText } from './files/extract.js';
 import { debounce } from '../shared/debounce.js';
 import { shouldInterrupt } from '../shared/constants.js';
 import { MSG, withDefaults } from '../shared/storage.js';
+
+// Lazy chunks (the pdf.js parser) must load from the extension origin, not the
+// host page. Set webpack's runtime public path before any dynamic import().
+if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+  __webpack_public_path__ = chrome.runtime.getURL('');
+}
 
 const settings = withDefaults({});
 
@@ -220,9 +228,54 @@ function attach() {
   runScan();
 }
 
+/* ----------------------- file attachment scanning ----------------------- */
+function fileScanEnabled() {
+  return siteEnabled() && settings.scanAttachments !== false;
+}
+
+async function onAttach(files) {
+  const first = files.find((f) => f && f.name);
+  const count = files.length;
+  // Tier 0: immediate, non-blocking nudge.
+  modal.openFile({
+    title: 'Check this file before sending',
+    subtitle:
+      `You're attaching ${count > 1 ? count + ' files' : 'a file'}` +
+      (first ? ` ("${first.name}")` : '') +
+      `. Files can carry personal data this scanner can't see in the chat box. Review before sending.`,
+  });
+
+  // Tier 1: extract text on-device and scan it. Escalate if PII is found.
+  for (const f of files) {
+    let res;
+    try {
+      res = await extractText(f);
+    } catch {
+      continue;
+    }
+    if (!res || !res.supported || res.error || !res.text) continue;
+    const result = detect(res.text);
+    const findings = result.matches.filter((m) => m.showInModal);
+    if (findings.length && shouldInterrupt(result.riskLevel, settings.sensitivity)) {
+      modal.openFile({
+        title: 'This file may contain private data',
+        subtitle: `"${f.name}" looks like it includes the items below. Remove it or review before sending to an AI tool.`,
+        findings: result.matches,
+      });
+      try {
+        chrome.runtime.sendMessage({ type: MSG.RECORD_CATCH });
+      } catch {
+        /* ignore */
+      }
+      break; // one findings warning is enough
+    }
+  }
+}
+
 function start() {
   loadFonts(); // register embedded fonts CSP-safely (async, fire-and-forget)
   attachInterceptors();
+  initAttachWatcher(onAttach, fileScanEnabled);
   attach();
   // SPA pages mutate the DOM continuously while streaming answers — debounce the
   // re-attach check so we don't run it on every mutation batch.

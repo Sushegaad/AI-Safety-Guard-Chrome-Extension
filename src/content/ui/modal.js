@@ -153,6 +153,48 @@ export function createModal(doc = document) {
     );
   }
 
+  /* ---------------------- File attachment warning ----------------------- */
+  // A non-blocking nudge (Tier 0) or a findings warning (Tier 1) for attached
+  // files. Files can't be redacted in place, so the action is informational.
+  function renderFile(opts) {
+    const body = h('div.asg-card__body');
+    body.appendChild(h('h2.asg-title', { text: opts.title }));
+    if (opts.subtitle) body.appendChild(h('p.asg-subtitle', { text: opts.subtitle }));
+
+    const findings = (opts.findings || []).filter((m) => m.showInModal);
+    if (findings.length) {
+      const list = h('div.asg-findings');
+      for (const m of findings) {
+        list.appendChild(
+          h('div.asg-find', {}, [
+            h('span.asg-find__type', { text: m.type }),
+            h('span.asg-find__val.asg-data', { text: m.maskedValue }),
+            h('span.asg-pill.asg-pill--' + riskClass(m.risk), { text: RISK[m.risk].pillLabel }),
+          ])
+        );
+      }
+      body.appendChild(list);
+    }
+
+    body.appendChild(
+      h('div.asg-note', {}, [
+        opts.note || 'Scanned on your device. The file was not uploaded by us.',
+      ])
+    );
+    body.appendChild(
+      h('div.asg-actions', {}, [
+        h('button.asg-btn.asg-btn--primary', { text: 'Got it', onclick: close }),
+      ])
+    );
+    setBody(body);
+  }
+
+  function openFile(opts) {
+    ctx = { onClose: opts.onClose };
+    if (!host) mount();
+    renderFile(opts);
+  }
+
   /* ------------------------------- lifecycle ---------------------------- */
   function open(opts) {
     ctx = opts;
@@ -185,5 +227,5 @@ export function createModal(doc = document) {
     closing = false;
   }
 
-  return { open, close, isOpen: () => !!host };
+  return { open, openFile, close, isOpen: () => !!host };
 }

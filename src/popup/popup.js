@@ -109,6 +109,22 @@ export function initPopup(opts = {}) {
       ])
     );
 
+    // --- Attachments ---
+    body.appendChild(
+      el('div.section', {}, [
+        el('p.section__label', { text: 'Attachments' }),
+        el('label.toggle-row', {}, [
+          el('span.toggle-row__label', { text: 'Scan attached PDF & Word files' }),
+          el('input.switch', {
+            type: 'checkbox',
+            'data-setting': 'scanAttachments',
+            checked: settings.scanAttachments !== false,
+            onchange: (e) => persist({ scanAttachments: e.target.checked }),
+          }),
+        ]),
+      ])
+    );
+
     // --- Stat ---
     body.appendChild(
       el('div.stat', {}, [

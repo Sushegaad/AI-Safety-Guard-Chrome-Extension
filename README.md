@@ -1,53 +1,52 @@
-# AI Safety Guard
+<p align="center">
+  <img src="assets/icons/icon128.png" width="88" height="88" alt="AI Safety Guard logo" />
+</p>
 
-A free Chrome extension that warns you before you send private information to an AI tool. Calm, plain English, and helpful, never punitive. Scanning happens on your device.
+<h1 align="center">AI Safety Guard</h1>
+
+<p align="center"><b>Think before you send.</b><br />A free Chrome extension that warns you before private information reaches an AI tool. All scanning happens on your device.</p>
 
 ## What this does
 
-AI Safety Guard watches the message box on AI tools like ChatGPT, Claude, Gemini, Perplexity, and Microsoft Copilot. As you type, it scans your text on your own device for sensitive information such as emails, phone numbers, credit cards, Social Security numbers, API keys, passwords, and confidential business, legal, financial, or health language.
+<img src="assets/icons/icon48.png" width="20" height="20" align="left" alt="" />
 
-If you try to send something risky, it pauses and shows a clear warning with the exact items it found (always masked, never the raw secret). You can then redact the sensitive values, send anyway, or keep editing. Your prompt text never leaves your device.
+AI Safety Guard watches the message box on ChatGPT, Claude, Gemini, Perplexity, and Microsoft Copilot. As you type, it scans your text locally for sensitive information: emails, phone numbers, credit cards, SSNs, API keys, passwords, and confidential business, legal, financial, or health language.
 
-## Why you should use this
-
-It is easy to paste a customer email, a contract, an API key, or internal data into an AI tool without thinking. Once it is sent, you cannot take it back. AI Safety Guard gives you a quiet heads up at the one moment that matters, right before you hit send, so a slip does not turn into a leak. It is local first, so using it does not mean trusting yet another company with your data.
-
-## Who is this for
-
-- Everyday AI users who want a simple safety net
-- Employees using AI at work without formal data loss tooling
-- Students, researchers, freelancers, and consultants
-- Developers who do not want to paste keys or source into a chat box
-- Small teams and security conscious individuals
+If you try to send something risky, it pauses and shows a clear warning listing what it found, always masked, never the raw secret. You can redact the values, send anyway, or keep editing. Your text never leaves your device.
 
 ## Features
 
-- On device scanning. Your prompts are analyzed locally and are not stored or uploaded.
-- Pre send warning that lists what was found, with masked values only.
-- Risk badge near the input box that updates as you type.
-- One click redaction that replaces sensitive values with labels like [EMAIL] and [API_KEY].
+- Local scanning. Prompts are analyzed on your device, never stored or uploaded.
+- Pre-send warning that lists what was found, with masked values only.
+- Live risk badge near the input box that updates as you type.
+- One-click redaction that swaps sensitive values for labels like [EMAIL] and [API_KEY].
+- Attachment scanning. Attach a PDF or Word file and it scans the file's text on your device, including hidden comments and metadata.
 - Three sensitivity modes: Basic, Balanced, and Strict.
-- Per site control and custom domains, all managed from a small popup.
+- Per-site control and custom domains from a small popup.
 - No accounts, no ads, no prompt logging, and no network calls at all.
+
+## Who is this for
+
+Everyday AI users, employees using AI at work, students and researchers, freelancers, developers who do not want to paste keys or source into a chat box, and security-conscious teams.
 
 ## Getting started
 
 1. Run `npm install` then `npm run build`.
-2. Open `chrome://extensions`, turn on Developer mode.
+2. Open `chrome://extensions` and turn on Developer mode.
 3. Click "Load unpacked" and select the `dist` folder.
 4. The setup screen opens on first install. Choose your sensitivity and the sites to watch.
 
-## How to handle common installation issues
+## Common issues
 
-**The fonts look wrong on some sites.** A few AI sites use a strict Content Security Policy. The extension loads its own fonts in a way that works around this, but if you ever see a system font, reload the tab once after install.
+**Fonts look wrong on a site.** Some sites have a strict Content Security Policy. The extension loads its own fonts to work around this; if you see a system font, reload the tab once.
 
-**The badge or warning does not appear.** AI sites change their page layout often. Open the page, then reopen the extension popup and confirm the site toggle is on. If it still does not appear, the site may have changed its input box. Check the browser console for a message that begins with `[AI Safety Guard]`.
+**Badge or warning does not appear.** AI sites change their layout often. Reopen the popup and confirm the site toggle is on. If it still does not appear, check the console for a message starting with `[AI Safety Guard]`.
 
-**Nothing is being saved.** Settings live in your browser local storage. If you use a locked down or guest profile that blocks extension storage, preferences will not persist.
+**Nothing is saved.** Settings live in browser local storage. Locked-down or guest profiles that block extension storage will not persist preferences.
 
 ## Privacy
 
-Scanning is local. The extension stores only your settings and a single "risky sends caught" counter, never your prompt text. The full policy is in [PRIVACY.md](PRIVACY.md).
+Scanning is local and there are no network calls. The extension stores only your settings and a single "risky sends caught" counter, never your text or files. Full policy: [PRIVACY.md](PRIVACY.md).
 
 ## Author
 

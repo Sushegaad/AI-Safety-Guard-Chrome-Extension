@@ -35,11 +35,17 @@ export default (env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: '[name].js',
+      // Lazy chunks (e.g. the pdf.js parser, loaded only when a PDF is attached)
+      // get a predictable path so they can be web_accessible_resources. The
+      // runtime publicPath is set in content.js via __webpack_public_path__.
+      chunkFilename: 'src/content/chunks/[name].js',
       clean: true,
     },
     resolve: {
       extensions: ['.js'],
     },
+    // pdf.js (lazy chunk) is intentionally large; don't warn on asset size.
+    performance: { hints: false },
     plugins: [
       new CopyWebpackPlugin({
         patterns: [
@@ -50,6 +56,11 @@ export default (env, argv) => {
           { from: 'src/shared/*.css', to: 'src/shared/[name][ext]' },
           { from: 'assets/fonts', to: 'assets/fonts' },
           { from: 'assets/icons', to: 'assets/icons' },
+          // pdf.js worker, referenced via chrome.runtime.getURL at runtime.
+          {
+            from: 'node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs',
+            to: 'assets/pdf.worker.min.mjs',
+          },
         ],
       }),
     ],

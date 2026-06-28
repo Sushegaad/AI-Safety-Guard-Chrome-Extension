@@ -13,6 +13,7 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.webextensions,
+        __webpack_public_path__: 'writable', // webpack runtime public path (set for lazy chunks)
       },
     },
     rules: {
