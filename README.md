@@ -48,6 +48,10 @@ Everyday AI users, employees using AI at work, students and researchers, freelan
 
 Scanning is local and there are no network calls. The extension stores only your settings and a single "risky sends caught" counter, never your text or files. Full policy: [PRIVACY.md](PRIVACY.md).
 
+## Documentation
+
+Practical guidance on using AI tools without leaking sensitive data: [AI Safety - Best Practices](docs/AI%20Safety%20-%20Best%20Practices.pdf).
+
 ## Author
 
 Hemant Naik [LinkedIn](https://www.linkedin.com/in/tanaji-naik/) · [hemant.naik@gmail.com](mailto:hemant.naik@gmail.com)
