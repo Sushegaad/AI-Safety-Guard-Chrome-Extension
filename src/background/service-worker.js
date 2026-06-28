@@ -53,12 +53,32 @@ async function ensureOffscreen() {
   }
 }
 
+// Close the offscreen document once it has been idle, so pdf.js isn't held in
+// memory between attachments.
+const OFFSCREEN_IDLE_MS = 30_000;
+let offscreenIdleTimer = null;
+function scheduleOffscreenClose() {
+  if (offscreenIdleTimer) clearTimeout(offscreenIdleTimer);
+  offscreenIdleTimer = setTimeout(() => {
+    offscreenIdleTimer = null;
+    chrome.offscreen.closeDocument().catch(() => {});
+  }, OFFSCREEN_IDLE_MS);
+}
+
 // Relay PDF bytes to the offscreen document and return the extracted text.
 async function extractPdfViaOffscreen(dataB64) {
+  if (offscreenIdleTimer) {
+    clearTimeout(offscreenIdleTimer);
+    offscreenIdleTimer = null;
+  }
   await ensureOffscreen();
-  const r = await chrome.runtime.sendMessage({ type: OFFSCREEN_PDF, dataB64 });
-  if (!r || r.error) throw new Error((r && r.error) || 'offscreen_failed');
-  return r.text || '';
+  try {
+    const r = await chrome.runtime.sendMessage({ type: OFFSCREEN_PDF, dataB64 });
+    if (!r || r.error) throw new Error((r && r.error) || 'offscreen_failed');
+    return r.text || '';
+  } finally {
+    scheduleOffscreenClose();
+  }
 }
 
 /**

@@ -22,6 +22,7 @@ import { loadFonts } from './ui/fonts.js';
 import { initAttachWatcher } from './files/attach.js';
 import { extractText } from './files/extract.js';
 import { bytesToBase64 } from '../shared/base64.js';
+import { log } from '../shared/log.js';
 import { debounce } from '../shared/debounce.js';
 import { shouldInterrupt } from '../shared/constants.js';
 import { MSG, withDefaults } from '../shared/storage.js';
@@ -221,9 +222,7 @@ function attach() {
   badge = createBadge(anchor);
   el.addEventListener('input', boundInputListener);
   runScan();
-  console.info(
-    `[AI Safety Guard] bound to input <${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}> on ${location.host}`
-  );
+  log.info(`bound to input <${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}> on ${location.host}`);
 }
 
 /* ----------------------- file attachment scanning ----------------------- */
@@ -296,7 +295,7 @@ function start() {
   if (started) return;
   started = true;
   try {
-    console.info(`[AI Safety Guard] content script active on ${location.host} (adapter: ${adapter.id})`);
+    log.info(`content script active on ${location.host} (adapter: ${adapter.id})`);
     loadFonts(); // register embedded fonts CSP-safely (async, fire-and-forget)
     attachInterceptors();
     initAttachWatcher(onAttach, fileScanEnabled);
@@ -316,15 +315,15 @@ function start() {
       if (!inputEl) {
         const ce = document.querySelectorAll('[contenteditable="true"]').length;
         const ta = document.querySelectorAll('textarea').length;
-        console.warn(
-          `[AI Safety Guard] no input box found on ${location.host} after 4s ` +
+        log.warn(
+          `no input box found on ${location.host} after 4s ` +
             `(contenteditable=${ce}, textarea=${ta}). The site's selectors may have changed, ` +
             `or the composer is in a closed shadow root we can't reach.`
         );
       }
     }, 4000);
   } catch (e) {
-    console.error('[AI Safety Guard] failed to start', e);
+    log.error('failed to start', e);
   }
 }
 

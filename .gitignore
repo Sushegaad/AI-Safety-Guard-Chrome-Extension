@@ -12,6 +12,9 @@ web-ext-artifacts/
 # Planning docs (kept local, not part of the shipped repo)
 /Plans/
 
+# AI assistant context (kept local)
+CLAUDE.md
+
 # OS / editor
 .DS_Store
 *.log

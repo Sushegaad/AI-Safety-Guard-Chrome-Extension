@@ -95,6 +95,28 @@ function makeDocx() {
   // PDF is not parsed inline; it is flagged for offscreen handling.
   const pdf = await extractText({ name: 'contract.pdf', type: 'application/pdf', size: 100 });
   ok('extractText: pdf -> needsOffscreen (no inline parse)', pdf.kind === 'pdf' && pdf.needsOffscreen === true && pdf.text === '');
+
+  // PDFs over the (lower) cap are skipped, not sent to the offscreen doc.
+  const bigPdf = await extractText({ name: 'big.pdf', type: 'application/pdf', size: 11 * 1024 * 1024 });
+  ok('extractText: pdf over 10MB -> too_large (no offscreen)', bigPdf.error === 'too_large' && !bigPdf.needsOffscreen);
+  // DOCX keeps the larger cap.
+  const okDocx = await extractText({ name: 'big.docx', type: '', size: 11 * 1024 * 1024, arrayBuffer: async () => makeDocx().buffer });
+  ok('extractText: 11MB docx still under cap', okDocx.error !== 'too_large');
+}
+
+/* ----------------------------------------------------- gated log helper */
+{
+  const { log } = await import('../../shared/log.js');
+  ok('log: exposes gated methods', ['debug', 'info', 'warn', 'error'].every((k) => typeof log[k] === 'function'));
+  let threw = false;
+  try {
+    log.debug('x');
+    log.info('x');
+    log.warn('x');
+  } catch {
+    threw = true;
+  }
+  ok('log: gated methods do not throw (silent in prod)', threw === false);
 }
 
 /* ----------------------------------------------- base64 transfer round-trip */

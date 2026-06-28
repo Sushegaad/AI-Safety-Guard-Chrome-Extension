@@ -12,7 +12,9 @@ import { base64ToBytes } from '../shared/base64.js';
 
 const OFFSCREEN_PDF = 'ASG_OFFSCREEN_PDF';
 
-chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Defense-in-depth: only accept messages from THIS extension's own contexts.
+  if (sender && sender.id && sender.id !== chrome.runtime.id) return;
   if (!msg || msg.type !== OFFSCREEN_PDF) return; // not for us
   (async () => {
     try {

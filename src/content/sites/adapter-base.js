@@ -6,6 +6,8 @@
  * is found — that warning is the first thing to check when a site breaks.
  * ========================================================================== */
 
+import { log } from '../../shared/log.js';
+
 const warned = new Set();
 
 export function firstMatch(selectors, what, siteId, doc = document) {
@@ -16,12 +18,11 @@ export function firstMatch(selectors, what, siteId, doc = document) {
   const key = `${siteId}:${what}`;
   if (!warned.has(key)) {
     warned.add(key);
-    // Diagnostic only (debug, not warn) so it does not surface in the
-    // extension's Errors panel. Submit handling has selector-independent
-    // fallbacks (see looksLikeSendButton + Enter/submit interception).
-    console.debug(
-      `[AI Safety Guard] ${siteId}: could not find ${what} via selectors. ` +
-        `Tried: ${selectors.join(', ')}. Falling back to heuristics.`
+    // Diagnostic only (gated, off in production). Submit handling has
+    // selector-independent fallbacks (looksLikeSendButton + Enter/submit).
+    log.debug(
+      `${siteId}: could not find ${what} via selectors.`,
+      `Tried: ${selectors.join(', ')}. Falling back to heuristics.`
     );
   }
   return null;

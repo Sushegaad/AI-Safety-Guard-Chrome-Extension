@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Keep npm dependencies patched. pdfjs-dist in particular parses untrusted
+  # file bytes in the offscreen document, so security updates matter.
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # Batch routine dev-tooling bumps into one PR to reduce noise.
+      dev-dependencies:
+        dependency-type: development
+    labels:
+      - dependencies
+
+  # Keep GitHub Actions pinned to current, patched versions.
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies

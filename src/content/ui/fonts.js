@@ -14,6 +14,7 @@
  * ========================================================================== */
 
 import { FONTS } from '../../shared/constants.js';
+import { log } from '../../shared/log.js';
 
 const FILES = [
   ['Hanken Grotesk', FONTS.weight.regular, 'hanken-grotesk-400.woff2'],
@@ -48,7 +49,7 @@ export async function loadFonts(doc = document) {
         await face.load();
         doc.fonts.add(face);
       } catch (e) {
-        console.warn('[AI Safety Guard] could not load embedded font', file, e);
+        log.warn('could not load embedded font', file, e);
       }
     })
   );
