@@ -21,7 +21,10 @@ export const SITES = [
       input: ['#prompt-textarea', 'div[contenteditable="true"]', 'textarea[data-id]', 'main textarea'],
       submit: [
         'button[data-testid="send-button"]',
+        'button[data-testid="composer-send-button"]',
+        '#composer-submit-button',
         'button[aria-label="Send prompt"]',
+        'button[aria-label*="Send" i]',
         'form button[type="submit"]',
       ],
       badgeAnchor: ['form', '#prompt-textarea', 'div[contenteditable="true"]'],

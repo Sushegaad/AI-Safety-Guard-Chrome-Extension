@@ -11,8 +11,61 @@
  * ========================================================================== */
 
 import { DEFAULT_REWRITE_ENDPOINT } from '../shared/constants.js';
+import { detect, CATEGORY } from './detector.js';
 export { DEFAULT_REWRITE_ENDPOINT };
 export const REWRITE_INSTRUCTION = 'Remove or generalize all sensitive details';
+
+// Generic descriptors used by the on-device rewrite fallback.
+const GENERIC = {
+  api_key: 'an API key',
+  password: 'a password',
+  credit_card: 'a card number',
+  ssn: 'an SSN',
+  account_number: 'an account number',
+  email: 'an email address',
+  phone: 'a phone number',
+  address: 'an address',
+  health: 'health information',
+  financial: 'financial details',
+  legal: 'confidential information',
+  customer_data: "a person's name",
+  internal_url: 'an internal URL',
+  source_code: 'some code',
+};
+
+/**
+ * On-device "safer version": replace each detected sensitive value with a
+ * generic descriptor. No network, no LLM. This is the default rewrite so the
+ * feature works out of the box without a backend, and is also the fallback if a
+ * configured cloud endpoint is unreachable.
+ *
+ * @param {string} prompt
+ * @returns {{ safeText: string, removed: string }}
+ */
+export function localRewrite(prompt) {
+  const text = String(prompt || '');
+  const { matches } = detect(text);
+  const ordered = [...matches]
+    .filter((m) => Number.isInteger(m.start) && Number.isInteger(m.end) && m.end > m.start)
+    .sort((a, b) => b.start - a.start);
+
+  let out = text;
+  let last = Infinity;
+  for (const m of ordered) {
+    if (m.end > last) continue; // skip overlaps
+    out = out.slice(0, m.start) + (GENERIC[m.category] || 'sensitive information') + out.slice(m.end);
+    last = m.start;
+  }
+
+  const seen = new Set();
+  const removed = matches
+    .filter((m) => m.showInModal !== false)
+    .filter((m) => (seen.has(m.category) ? false : (seen.add(m.category), true)))
+    .map((m) => CATEGORY[m.category].summary)
+    .join(', ');
+
+  return { safeText: out, removed };
+}
 
 /**
  * Call the configured rewrite endpoint. NEVER call this without prior consent —

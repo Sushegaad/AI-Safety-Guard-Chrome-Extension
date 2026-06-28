@@ -9,7 +9,8 @@
  * ========================================================================== */
 
 import { MSG, readSettings, writeSettings, bumpCatch } from '../shared/storage.js';
-import { rewrite } from '../content/rewriter.js';
+import { rewrite, localRewrite } from '../content/rewriter.js';
+import { DEFAULT_REWRITE_ENDPOINT } from '../shared/constants.js';
 
 /* --- First run: open onboarding ------------------------------------------ */
 chrome.runtime.onInstalled.addListener((details) => {
@@ -56,20 +57,27 @@ export async function routeMessage(msg, deps = {}) {
       return { riskySubmissionsCaught };
     }
     case MSG.REWRITE: {
-      // The ONLY network egress, performed here in the background (not the
-      // content script) so it's not subject to the host page's CSP and the
-      // endpoint comes from trusted storage — never from the caller.
+      // Default: generalize ON-DEVICE (no network). A cloud call happens only
+      // when the user has configured a CUSTOM endpoint, and then only with
+      // consent. Any network egress runs here in the background (not the content
+      // script) so it is not subject to the host page's CSP, and the endpoint
+      // comes from trusted storage, never from the caller.
       const settings = await read();
-      if (!settings.allowRewrite) return { error: 'consent_required' };
-      const doRewrite = deps.rewrite || rewrite;
-      try {
-        const out = await doRewrite(msg.prompt, msg.categories, {
-          endpoint: settings.rewriteApiEndpoint,
-        });
-        return { safeText: out.safeText, removed: out.removed };
-      } catch (e) {
-        return { error: 'rewrite_failed', detail: String(e) };
+      const endpoint = settings.rewriteApiEndpoint;
+      const useCloud = endpoint && endpoint !== DEFAULT_REWRITE_ENDPOINT;
+      const local = deps.localRewrite || localRewrite;
+      if (useCloud) {
+        if (!settings.allowRewrite) return { error: 'consent_required' };
+        const doRewrite = deps.rewrite || rewrite;
+        try {
+          const out = await doRewrite(msg.prompt, msg.categories, { endpoint });
+          return { safeText: out.safeText, removed: out.removed, mode: 'cloud' };
+        } catch {
+          // fall through to on-device generalization
+        }
       }
+      const out = local(msg.prompt);
+      return { safeText: out.safeText, removed: out.removed, mode: 'local' };
     }
     default:
       return { ok: false, error: 'unknown_message' };

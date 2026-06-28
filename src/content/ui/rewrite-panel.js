@@ -14,7 +14,8 @@ export function renderRewritePanel(props) {
     original,
     safer, // string | null
     removed, // "Removed: ..."
-    allowRewrite, // boolean — has consent been granted?
+    mode, // 'local' | 'cloud'
+    allowRewrite, // boolean — has consent been granted? (always true for local)
     endpoint,
     busy,
     error,
@@ -22,6 +23,7 @@ export function renderRewritePanel(props) {
     onUseSafer,
     onBack,
   } = props;
+  const isLocal = mode !== 'cloud';
 
   const body = h('div.asg-card__body');
   body.appendChild(h('h2.asg-title', { text: 'A safer way to ask' }));
@@ -50,15 +52,24 @@ export function renderRewritePanel(props) {
 
   if (removed) body.appendChild(h('p.asg-removed', { text: removed }));
 
-  // Cloud disclosure — exact intent from the design.
-  const disclosure = h('div.asg-disclosure', {}, [
-    h('div', {}, [
-      h('strong', { text: 'Use cloud rewrite · off by default. ' }),
-      h('span', {
-        text: `Only this text is sent, only when you ask. Endpoint is configurable (${endpoint}).`,
-      }),
-    ]),
-  ]);
+  // Disclosure: on-device by default; cloud only when a custom endpoint is set.
+  const disclosure = isLocal
+    ? h('div.asg-disclosure', {}, [
+        h('div', {}, [
+          h('strong', { text: 'Generated on your device. ' }),
+          h('span', {
+            text: 'No text is sent anywhere. Set a custom endpoint in settings to use a hosted model instead.',
+          }),
+        ]),
+      ])
+    : h('div.asg-disclosure', {}, [
+        h('div', {}, [
+          h('strong', { text: 'Use cloud rewrite · off by default. ' }),
+          h('span', {
+            text: `Only this text is sent, only when you ask. Endpoint is configurable (${endpoint}).`,
+          }),
+        ]),
+      ]);
   body.appendChild(disclosure);
 
   const actions = h('div.asg-actions');

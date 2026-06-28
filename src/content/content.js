@@ -16,11 +16,12 @@ import { detect, detectAsync, ASYNC_THRESHOLD, CATEGORY } from './detector.js';
 import { redact } from './redactor.js';
 import { readInput, writeInput } from './dom-utils.js';
 import { getAdapter } from './sites/index.js';
+import { looksLikeSendButton } from './sites/adapter-base.js';
 import { createBadge } from './ui/badge.js';
 import { createModal } from './ui/modal.js';
 import { loadFonts } from './ui/fonts.js';
 import { debounce } from '../shared/debounce.js';
-import { shouldInterrupt } from '../shared/constants.js';
+import { shouldInterrupt, DEFAULT_REWRITE_ENDPOINT } from '../shared/constants.js';
 import { MSG, withDefaults } from '../shared/storage.js';
 
 const settings = withDefaults({});
@@ -148,10 +149,13 @@ function openModal(result, text) {
         if (!r || r.error) throw new Error((r && r.error) || 'rewrite_failed');
         return r;
       },
-      getRewriteConfig: async () => ({
-        allowRewrite: settings.allowRewrite,
-        endpoint: settings.rewriteApiEndpoint,
-      }),
+      getRewriteConfig: async () => {
+        const endpoint = settings.rewriteApiEndpoint;
+        // "local" = generalize on-device (no egress). "cloud" only when the user
+        // has configured a custom endpoint (then consent applies).
+        const mode = endpoint && endpoint !== DEFAULT_REWRITE_ENDPOINT ? 'cloud' : 'local';
+        return { mode, allowRewrite: settings.allowRewrite, endpoint };
+      },
       setConsent: async () => {
         settings.allowRewrite = true;
         try {
@@ -186,8 +190,12 @@ function attachInterceptors() {
   document.addEventListener(
     'click',
     (e) => {
-      const btn = adapter.getSubmitButton();
-      if (btn && (e.target === btn || (e.target.closest && e.target.closest('button') === btn))) {
+      if (!inputEl) return;
+      const clicked = e.target && e.target.closest ? e.target.closest('button, [role="button"]') : null;
+      if (!clicked) return;
+      // Intercept if it is the known submit button OR just looks like a send
+      // control (robust to the site renaming its selectors).
+      if (clicked === adapter.getSubmitButton() || looksLikeSendButton(clicked)) {
         evaluateSubmit(e);
       }
     },

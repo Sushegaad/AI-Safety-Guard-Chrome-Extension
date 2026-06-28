@@ -159,8 +159,11 @@ export function createModal(doc = document) {
   /* ----------------------------- B2: rewrite ---------------------------- */
   async function handleRewrite() {
     const cfg = await ctx.services.getRewriteConfig();
+    const isLocal = cfg.mode === 'local';
     const state = {
-      allowRewrite: !!cfg.allowRewrite,
+      mode: cfg.mode || 'cloud',
+      // Local generalization needs no consent (nothing leaves the device).
+      allowRewrite: isLocal ? true : !!cfg.allowRewrite,
       endpoint: cfg.endpoint,
       safer: null,
       removed: removalNote(ctx.result.categories, ctx.services.categoryMeta),
@@ -174,6 +177,7 @@ export function createModal(doc = document) {
           original: ctx.text,
           safer: state.safer,
           removed: state.removed,
+          mode: state.mode,
           allowRewrite: state.allowRewrite,
           endpoint: state.endpoint,
           busy: state.busy,

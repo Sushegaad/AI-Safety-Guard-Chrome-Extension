@@ -16,12 +16,35 @@ export function firstMatch(selectors, what, siteId, doc = document) {
   const key = `${siteId}:${what}`;
   if (!warned.has(key)) {
     warned.add(key);
-    console.warn(
-      `[AI Safety Guard] ${siteId}: could not find ${what}. ` +
-        `Tried: ${selectors.join(', ')}. The site's DOM may have changed.`
+    // Diagnostic only (debug, not warn) so it does not surface in the
+    // extension's Errors panel. Submit handling has selector-independent
+    // fallbacks (see looksLikeSendButton + Enter/submit interception).
+    console.debug(
+      `[AI Safety Guard] ${siteId}: could not find ${what} via selectors. ` +
+        `Tried: ${selectors.join(', ')}. Falling back to heuristics.`
     );
   }
   return null;
+}
+
+/**
+ * Heuristic: does this element look like a "send/submit" control? Used so that
+ * clicking the real send button is intercepted even when a site renames its
+ * selectors (which they do often).
+ */
+export function looksLikeSendButton(el) {
+  if (!el) return false;
+  if (el.getAttribute && el.getAttribute('type') === 'submit') return true;
+  const hay = [
+    el.getAttribute && el.getAttribute('aria-label'),
+    el.getAttribute && el.getAttribute('data-testid'),
+    el.getAttribute && el.getAttribute('title'),
+    el.id,
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return /\bsend\b|\bsubmit\b|send-button|composer-submit/.test(hay);
 }
 
 /** Build a standard adapter from selector lists. */

@@ -76,7 +76,7 @@ note(
 const contentSrc = code(join(SRC, 'content/content.js'));
 note(
   'content getRewriteConfig reads allowRewrite (no unconditional rewrite)',
-  /getRewriteConfig:\s*async \(\) => \(\{\s*allowRewrite: settings\.allowRewrite/.test(contentSrc.replace(/\s+/g, ' '))
+  /getRewriteConfig:/.test(contentSrc) && /allowRewrite: settings\.allowRewrite/.test(contentSrc)
 );
 
 /* 3. Storage writes: only via storage.js, only schema + counter ------------ */

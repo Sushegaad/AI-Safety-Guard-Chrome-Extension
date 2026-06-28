@@ -10,7 +10,7 @@ AI Safety Guard is built on a simple promise: **your prompts are scanned on your
 - Scanning for sensitive information happens **locally in your browser**. Your prompt text never leaves your device during a scan.
 - We do **not** collect, log, sell, or transmit your prompts, the sites you visit, or any personal information.
 - The extension stores only **your settings and a single counter** ("risky sends caught") in your browser's local storage. This never includes prompt text.
-- There is exactly **one** feature that sends text off your device — the optional **"Rewrite it safely"** action — and it runs **only when you explicitly ask for it and after you have given consent**.
+- The **"Rewrite it safely"** feature generates a safer version of your prompt **on your device by default**, with no network call. Text is sent off device only if you deliberately configure a custom cloud rewrite endpoint, and then only after you give consent.
 
 ## What the extension does
 
@@ -33,17 +33,17 @@ The extension uses your browser's local storage (`chrome.storage.local`) to reme
 
 This data lives only on your device. It is never uploaded to us. **Prompt text is never part of this stored data.** Uninstalling the extension removes all of it.
 
-## The one time text leaves your device: "Rewrite it safely"
+## "Rewrite it safely" and when text could leave your device
 
-The optional "Rewrite it safely" feature (Screen B2) generates a safer, generalized version of your prompt. This is the **only** feature that sends text to an external service, and it is governed by strict rules:
+The "Rewrite it safely" feature (Screen B2) generates a safer, generalized version of your prompt. By default this happens **entirely on your device**: the extension replaces detected sensitive values with generic descriptions and sends nothing to any server.
 
-- It is **off by default.**
-- The first time you use it, you are shown a clear consent prompt and must explicitly turn it on. We do not ask again after you decide.
-- It runs **only** when you click "Rewrite it safely" — never automatically, never in the background.
-- When triggered, it sends only: the prompt text you chose to rewrite, the categories of sensitive data detected, and a fixed instruction to remove or generalize sensitive details.
-- The endpoint is **configurable** in settings, so you (or your organization) may point it at a self-hosted service. If you never enable this feature, no text is ever sent anywhere.
+Sending text to a cloud service is **opt-in** and governed by strict rules:
 
-If you use the default endpoint, your text is processed solely to produce the rewritten result and is not used for any other purpose by this extension.
+- Cloud rewrite is **off by default.** With no custom endpoint configured, the rewrite is always local.
+- If you (or your organization) configure a custom rewrite endpoint in settings, the first cloud use shows a clear consent prompt that you must explicitly accept. We do not ask again after you decide.
+- A cloud call runs **only** when you click "Rewrite it safely" with a custom endpoint configured and consent given, never automatically and never in the background.
+- When a cloud call is made, it sends only: the prompt text you chose to rewrite, the categories of sensitive data detected, and a fixed instruction to remove or generalize sensitive details.
+- If a configured cloud endpoint cannot be reached, the extension falls back to the on-device rewrite and your text is not sent.
 
 ## Analytics
 

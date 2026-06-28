@@ -26,7 +26,7 @@ It is easy to paste a customer email, a contract, an API key, or internal data i
 - Pre send warning that lists what was found, with masked values only.
 - Risk badge near the input box that updates as you type.
 - One click redaction that replaces sensitive values with labels like [EMAIL] and [API_KEY].
-- Optional safer rewrite that generalizes the private bits. This is the only feature that sends text off device, and only after you turn it on.
+- Safer rewrite that generalizes the private bits. This runs on your device by default. It sends text off device only if you configure a custom cloud endpoint and turn it on.
 - Three sensitivity modes: Basic, Balanced, and Strict.
 - Per site control and custom domains, all managed from a small popup.
 - No accounts, no ads, no prompt logging.

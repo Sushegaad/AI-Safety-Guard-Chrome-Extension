@@ -131,19 +131,34 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
     writeSettings: (p) => writeSettings(p, area),
     bumpCatch: () => bumpCatch(area),
     broadcast: () => {},
-    rewrite: async (prompt, cats, opts) => ({
-      safeText: `SAFE(${prompt.length}|${cats.join(',')}|${opts.endpoint})`,
-      removed: 'names',
-    }),
+    rewrite: async (prompt, cats, opts) => ({ safeText: `CLOUD(${opts.endpoint})`, removed: 'names' }),
+    localRewrite: () => ({ safeText: 'LOCAL_SAFE', removed: 'email' }),
   };
 
-  const denied = await routeMessage({ type: MSG.REWRITE, prompt: 'secret', categories: ['email'] }, deps);
-  ok('rewrite: refused without consent', denied.error === 'consent_required');
+  // Default endpoint => on-device generalization, no consent, no network.
+  const localRes = await routeMessage({ type: MSG.REWRITE, prompt: 'a@b.com', categories: ['email'] }, deps);
+  ok('rewrite: default uses on-device (no consent, no cloud)', localRes.mode === 'local' && localRes.safeText === 'LOCAL_SAFE');
 
+  // Custom endpoint without consent => refused.
+  await writeSettings({ rewriteApiEndpoint: 'https://self.example/rw' }, area);
+  const denied = await routeMessage({ type: MSG.REWRITE, prompt: 'x', categories: [] }, deps);
+  ok('rewrite: custom cloud refused without consent', denied.error === 'consent_required');
+
+  // Custom endpoint with consent => cloud, endpoint from storage (not caller).
   await writeSettings({ allowRewrite: true }, area);
-  const allowed = await routeMessage({ type: MSG.REWRITE, prompt: 'secret', categories: ['email'] }, deps);
-  ok('rewrite: runs after consent', allowed.safeText && allowed.safeText.startsWith('SAFE('));
-  ok('rewrite: uses endpoint from storage, not caller', allowed.safeText.includes('aisafetyguard.app'));
+  const cloud = await routeMessage({ type: MSG.REWRITE, prompt: 'x', categories: [] }, deps);
+  ok('rewrite: custom cloud after consent', cloud.mode === 'cloud' && cloud.safeText.includes('self.example'));
+
+  // Cloud failure => on-device fallback (never a hard error for the user).
+  const deps2 = { ...deps, rewrite: async () => { throw new Error('down'); } };
+  const fb = await routeMessage({ type: MSG.REWRITE, prompt: 'a@b.com', categories: ['email'] }, deps2);
+  ok('rewrite: cloud failure falls back to on-device', fb.mode === 'local' && fb.safeText === 'LOCAL_SAFE');
+
+  // Real on-device generalization replaces the secret with a generic phrase.
+  const { localRewrite } = await import('../content/rewriter.js');
+  const lr = localRewrite('my key is sk-live-9fK2pQ7xR4mZ8vB1');
+  ok('localRewrite: replaces secret with generic phrase', lr.safeText.includes('an API key'));
+  ok('localRewrite: raw secret removed', !lr.safeText.includes('sk-live-9fK2pQ7xR4mZ8vB1'));
 }
 
 /* ------------------------------------------------- popup (jsdom) -------- */
