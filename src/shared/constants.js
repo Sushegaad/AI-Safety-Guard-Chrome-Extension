@@ -33,7 +33,19 @@ export const BRAND = Object.freeze({
   trustSoft: '#EAEDFB',
   border: '#E6E4DF',
   surface: '#FFFFFF',
+  onTrust: '#FFFFFF',   // text/icon color on top of trust-blue buttons
+  scrim: 'rgba(26, 26, 46, 0.32)', // modal backdrop (ink @ 32%)
 });
+
+/* --- Elevation (shadows) — tokenized so no surface hardcodes rgba ---------- */
+export const ELEVATION = Object.freeze({
+  modal: '0 12px 32px rgba(26, 26, 46, 0.16)',
+  badge: '0 2px 8px rgba(26, 26, 46, 0.10)',
+});
+
+/* --- Shape & spacing scale (mirror of tokens.css) ------------------------- */
+export const RADIUS = Object.freeze({ sm: '6px', md: '10px', lg: '14px', pill: '999px' });
+export const SPACE = Object.freeze({ s1: '4px', s2: '8px', s3: '12px', s4: '16px', s5: '24px' });
 
 /* --- Risk levels ----------------------------------------------------------
  * Ordered low → high. `rank` lets the detector pick "highest category wins".

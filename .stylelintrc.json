@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "color-no-hex": true
+  },
+  "overrides": [
+    {
+      "files": ["src/shared/tokens.css"],
+      "rules": { "color-no-hex": null }
+    }
+  ]
+}
