@@ -8,7 +8,7 @@
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
   },
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "offscreen"],
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://chat.openai.com/*",
@@ -50,9 +50,7 @@
         "assets/fonts/*.woff2",
         "src/shared/tokens.css",
         "src/shared/fonts.css",
-        "assets/icons/*.png",
-        "assets/pdf.worker.min.mjs",
-        "src/content/chunks/*.js"
+        "assets/icons/*.png"
       ],
       "matches": [
         "https://chatgpt.com/*",

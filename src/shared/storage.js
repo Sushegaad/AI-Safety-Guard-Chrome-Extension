@@ -31,6 +31,7 @@ export const MSG = Object.freeze({
   SET_SETTINGS: 'SET_SETTINGS',
   SETTINGS_UPDATED: 'SETTINGS_UPDATED',
   RECORD_CATCH: 'RECORD_CATCH',
+  EXTRACT_PDF: 'EXTRACT_PDF', // content -> SW -> offscreen: parse a PDF locally
 });
 
 /** Deep-ish merge of stored values over defaults (enabledSites merged by key). */

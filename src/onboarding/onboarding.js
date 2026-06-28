@@ -31,17 +31,18 @@ export function initOnboarding(opts = {}) {
     return el('div.step-meta', { text: `Step ${n} of 3` });
   }
 
-  function brandmark() {
-    const mark = el('div.brandmark');
-    mark.style.cssText = `width:56px;height:56px;margin-bottom:12px;background:url("${logoDataUri()}") center / contain no-repeat;`;
-    return mark;
+  function hero() {
+    const mark = el('div.hero__mark');
+    mark.style.background = `url("${logoDataUri()}") center / contain no-repeat`;
+    return el('div.hero', {}, [mark, el('div.hero__name', { text: 'AI Safety Guard' })]);
   }
 
   function step1() {
     return [
-      brandmark(),
+      hero(),
       meta(1),
       el('h1', { text: 'A safety net for AI' }),
+      el('p.sub', { text: 'We give you a heads-up before private info leaves for an AI tool.' }),
       el('div.benefit', {}, [el('span.tick', { text: '✓' }), 'Scans on your device']),
       el('div.benefit', {}, [el('span.tick', { text: '✓' }), 'Nothing stored, ever']),
       el('div.benefit', {}, [el('span.tick', { text: '✓' }), "You're always in control"]),

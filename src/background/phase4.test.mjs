@@ -86,6 +86,20 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   const caught = await routeMessage({ type: MSG.RECORD_CATCH }, deps);
   ok('router RECORD_CATCH increments', caught.riskySubmissionsCaught === 1);
 
+  // EXTRACT_PDF relays to the offscreen parser (injected here).
+  const pdfOk = await routeMessage({ type: MSG.EXTRACT_PDF, dataB64: 'AAA' }, {
+    ...deps,
+    extractPdf: async (b64) => `TEXT(${b64})`,
+  });
+  ok('router EXTRACT_PDF returns offscreen text', pdfOk.text === 'TEXT(AAA)');
+  const pdfErr = await routeMessage({ type: MSG.EXTRACT_PDF, dataB64: 'x' }, {
+    ...deps,
+    extractPdf: async () => {
+      throw new Error('offscreen_down');
+    },
+  });
+  ok('router EXTRACT_PDF surfaces error', !!pdfErr.error && pdfErr.error.includes('offscreen_down'));
+
   const bad = await routeMessage({ type: 'NONSENSE' }, deps);
   ok('router unknown message -> error', bad.ok === false);
 }
@@ -184,6 +198,8 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   const root = document.getElementById('onboarding');
 
   ok('onboarding: step 1 title', root.textContent.includes('A safety net for AI'));
+  ok('onboarding: step 1 branded hero + wordmark', !!root.querySelector('.hero') && root.querySelector('.hero__name').textContent === 'AI Safety Guard');
+  ok('onboarding: step 1 intro line', root.textContent.includes('before private info leaves'));
   ok('onboarding: step 1 has 3 benefits', root.querySelectorAll('.benefit').length === 3);
 
   // Continue -> step 2

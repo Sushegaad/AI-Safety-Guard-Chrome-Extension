@@ -32,6 +32,35 @@ async function broadcastSettings(settings) {
   }
 }
 
+/* --- Offscreen document: hosts pdf.js to parse PDFs locally --------------- */
+const OFFSCREEN_URL = 'src/offscreen/offscreen.html';
+const OFFSCREEN_PDF = 'ASG_OFFSCREEN_PDF';
+
+async function ensureOffscreen() {
+  try {
+    if (chrome.offscreen.hasDocument && (await chrome.offscreen.hasDocument())) return;
+  } catch {
+    /* fall through to create */
+  }
+  try {
+    await chrome.offscreen.createDocument({
+      url: OFFSCREEN_URL,
+      reasons: ['WORKERS'],
+      justification: 'Parse attached PDFs locally to scan for sensitive data before they reach an AI tool.',
+    });
+  } catch {
+    // Most likely "only a single offscreen document may be created" — fine.
+  }
+}
+
+// Relay PDF bytes to the offscreen document and return the extracted text.
+async function extractPdfViaOffscreen(dataB64) {
+  await ensureOffscreen();
+  const r = await chrome.runtime.sendMessage({ type: OFFSCREEN_PDF, dataB64 });
+  if (!r || r.error) throw new Error((r && r.error) || 'offscreen_failed');
+  return r.text || '';
+}
+
 /**
  * Pure-ish message router (exported for tests). Calls the injected storage
  * helpers and returns the response object to send back.
@@ -53,6 +82,14 @@ export async function routeMessage(msg, deps = {}) {
     case MSG.RECORD_CATCH: {
       const riskySubmissionsCaught = await bump();
       return { riskySubmissionsCaught };
+    }
+    case MSG.EXTRACT_PDF: {
+      const extract = deps.extractPdf || extractPdfViaOffscreen;
+      try {
+        return { text: await extract(msg.dataB64) };
+      } catch (e) {
+        return { error: String(e) };
+      }
     }
     default:
       return { ok: false, error: 'unknown_message' };

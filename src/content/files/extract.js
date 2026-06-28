@@ -1,9 +1,11 @@
 /* ============================================================================
- * AI Safety Guard — File text extraction dispatcher (on-device)
+ * AI Safety Guard — File text extraction (content-script side)
  * ----------------------------------------------------------------------------
- * Maps a File to text by type. DOCX is parsed inline (fflate is tiny); PDF is
- * lazy-imported so the heavy pdf.js code only loads when a PDF is attached.
- * Unsupported types return supported:false so the Tier 0 nudge still applies.
+ * DOCX is parsed inline (fflate is tiny, pure, synchronous). PDF parsing does
+ * NOT happen here: pdf.js needs a worker and would force a dynamic chunk into
+ * the content bundle (which breaks content-script publicPath). PDFs are routed
+ * to an offscreen document by the orchestrator instead. So for PDF we just
+ * signal `needsOffscreen`.
  * ========================================================================== */
 
 import { extractDocxText } from './docx.js';
@@ -20,19 +22,21 @@ export function fileKind(file) {
 }
 
 /**
- * @returns {Promise<{ kind, supported, text, error? }>}
+ * @returns {Promise<{ kind, supported, text, needsOffscreen?, error? }>}
  */
 export async function extractText(file) {
   const kind = fileKind(file);
   if (kind === 'other') return { kind, supported: false, text: '' };
   if (file.size > MAX_BYTES) return { kind, supported: true, text: '', error: 'too_large' };
 
+  if (kind === 'pdf') {
+    // Parsed in the offscreen document; the caller forwards the bytes.
+    return { kind, supported: true, text: '', needsOffscreen: true };
+  }
+
   try {
     const buf = new Uint8Array(await file.arrayBuffer());
-    if (kind === 'docx') return { kind, supported: true, text: extractDocxText(buf) };
-    // PDF: lazy-load the parser chunk only now.
-    const { extractPdfText } = await import('./pdf.js');
-    return { kind, supported: true, text: await extractPdfText(buf) };
+    return { kind, supported: true, text: extractDocxText(buf) };
   } catch (e) {
     return { kind, supported: true, text: '', error: String(e) };
   }

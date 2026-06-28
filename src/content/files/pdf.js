@@ -1,16 +1,24 @@
 /* ============================================================================
- * AI Safety Guard — PDF text extraction (on-device, lazy-loaded)
+ * AI Safety Guard — PDF text extraction (runs in the OFFSCREEN document)
  * ----------------------------------------------------------------------------
- * pdf.js is large, so this module is only imported when a PDF is actually
- * attached (dynamic import in extract.js creates a separate chunk). The worker
- * is shipped as a web_accessible_resource and referenced via getURL.
+ * pdf.js needs a worker and a DOM, which makes a content script the wrong host.
+ * This module is bundled into the offscreen document instead, where pdf.js and
+ * its worker run on the extension's own origin (no host-page CSP, reliable
+ * publicPath). Static import keeps it out of the content bundle entirely.
  *
- * extractFromDoc() is split out as a pure-ish helper so the page-walking logic
- * is unit-testable with a mock pdf document (no real pdf.js needed in tests).
- * Everything stays on-device — no network.
+ * extractFromDoc() is split out as a pure helper so the page-walking logic is
+ * unit-testable with a mock pdf document (no real pdf.js in tests).
  * ========================================================================== */
 
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs';
+
 const MAX_PAGES = 50; // cap work on very large PDFs
+
+try {
+  pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('assets/pdf.worker.min.mjs');
+} catch {
+  /* not in extension context (tests) */
+}
 
 /** Walk a loaded pdf.js document and join its text. Injected/testable. */
 export async function extractFromDoc(doc) {
@@ -24,23 +32,7 @@ export async function extractFromDoc(doc) {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-let pdfjsPromise = null;
-async function getPdfjs() {
-  if (!pdfjsPromise) {
-    pdfjsPromise = import('pdfjs-dist/legacy/build/pdf.mjs').then((pdfjs) => {
-      try {
-        pdfjs.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('assets/pdf.worker.min.mjs');
-      } catch {
-        /* not in extension context (tests) */
-      }
-      return pdfjs;
-    });
-  }
-  return pdfjsPromise;
-}
-
 export async function extractPdfText(uint8) {
-  const pdfjs = await getPdfjs();
   const doc = await pdfjs.getDocument({ data: uint8 }).promise;
   try {
     return await extractFromDoc(doc);

@@ -21,6 +21,7 @@ const { fileKind, extractText } = await import('./extract.js');
 const { initAttachWatcher } = await import('./attach.js');
 const { detect } = await import('../detector.js');
 const { createModal } = await import('../ui/modal.js');
+const { bytesToBase64, base64ToBytes } = await import('../../shared/base64.js');
 
 let pass = 0;
 let fail = 0;
@@ -90,6 +91,17 @@ function makeDocx() {
   ok('extractText: docx supported + text', res.supported && res.text.includes('sarah.chen@northwind.io'));
   const other = await extractText({ name: 'x.txt', type: 'text/plain', size: 5 });
   ok('extractText: unsupported -> supported:false', other.supported === false);
+
+  // PDF is not parsed inline; it is flagged for offscreen handling.
+  const pdf = await extractText({ name: 'contract.pdf', type: 'application/pdf', size: 100 });
+  ok('extractText: pdf -> needsOffscreen (no inline parse)', pdf.kind === 'pdf' && pdf.needsOffscreen === true && pdf.text === '');
+}
+
+/* ----------------------------------------------- base64 transfer round-trip */
+{
+  const bytes = new Uint8Array([0, 1, 2, 250, 255, 128, 64]);
+  const round = base64ToBytes(bytesToBase64(bytes));
+  ok('base64: round-trips bytes exactly', round.length === bytes.length && round.every((b, i) => b === bytes[i]));
 }
 
 /* ------------------------------------------------------- attach watcher */

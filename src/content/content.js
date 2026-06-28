@@ -21,15 +21,10 @@ import { createModal } from './ui/modal.js';
 import { loadFonts } from './ui/fonts.js';
 import { initAttachWatcher } from './files/attach.js';
 import { extractText } from './files/extract.js';
+import { bytesToBase64 } from '../shared/base64.js';
 import { debounce } from '../shared/debounce.js';
 import { shouldInterrupt } from '../shared/constants.js';
 import { MSG, withDefaults } from '../shared/storage.js';
-
-// Lazy chunks (the pdf.js parser) must load from the extension origin, not the
-// host page. Set webpack's runtime public path before any dynamic import().
-if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
-  __webpack_public_path__ = chrome.runtime.getURL('');
-}
 
 const settings = withDefaults({});
 
@@ -233,6 +228,27 @@ function fileScanEnabled() {
   return siteEnabled() && settings.scanAttachments !== false;
 }
 
+// PDFs are parsed in the offscreen document (pdf.js needs a worker). Send the
+// bytes to the service worker, which relays to offscreen and returns the text.
+async function requestPdfText(file) {
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const r = await chrome.runtime.sendMessage({
+      type: MSG.EXTRACT_PDF,
+      dataB64: bytesToBase64(bytes),
+    });
+    return r && r.text ? r.text : '';
+  } catch {
+    return '';
+  }
+}
+
+async function getFileText(file) {
+  const res = await extractText(file);
+  if (res && res.needsOffscreen) return await requestPdfText(file);
+  return res ? res.text : '';
+}
+
 async function onAttach(files) {
   const first = files.find((f) => f && f.name);
   const count = files.length;
@@ -247,14 +263,14 @@ async function onAttach(files) {
 
   // Tier 1: extract text on-device and scan it. Escalate if PII is found.
   for (const f of files) {
-    let res;
+    let text = '';
     try {
-      res = await extractText(f);
+      text = await getFileText(f);
     } catch {
       continue;
     }
-    if (!res || !res.supported || res.error || !res.text) continue;
-    const result = detect(res.text);
+    if (!text) continue;
+    const result = detect(text);
     const findings = result.matches.filter((m) => m.showInModal);
     if (findings.length && shouldInterrupt(result.riskLevel, settings.sensitivity)) {
       modal.openFile({

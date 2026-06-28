@@ -31,14 +31,13 @@ export default (env, argv) => {
       'src/content/content': './src/content/content.js',
       'src/popup/popup': './src/popup/popup.js',
       'src/onboarding/onboarding': './src/onboarding/onboarding.js',
+      // pdf.js lives only in the offscreen document (statically bundled), so the
+      // content script has no dynamic chunks and no publicPath dependency.
+      'src/offscreen/offscreen': './src/offscreen/offscreen.js',
     },
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: '[name].js',
-      // Lazy chunks (e.g. the pdf.js parser, loaded only when a PDF is attached)
-      // get a predictable path so they can be web_accessible_resources. The
-      // runtime publicPath is set in content.js via __webpack_public_path__.
-      chunkFilename: 'src/content/chunks/[name].js',
       clean: true,
     },
     resolve: {
@@ -53,6 +52,7 @@ export default (env, argv) => {
           { from: 'src/popup/popup.html', to: 'src/popup/popup.html' },
           { from: 'src/popup/popup.css', to: 'src/popup/popup.css' },
           { from: 'src/onboarding/onboarding.html', to: 'src/onboarding/onboarding.html' },
+          { from: 'src/offscreen/offscreen.html', to: 'src/offscreen/offscreen.html' },
           { from: 'src/shared/*.css', to: 'src/shared/[name][ext]' },
           { from: 'assets/fonts', to: 'assets/fonts' },
           { from: 'assets/icons', to: 'assets/icons' },
