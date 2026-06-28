@@ -230,12 +230,17 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   root.querySelector('.opt-card[data-mode="strict"]').click();
   root.querySelector('.cta').click();
   ok('onboarding: step 3 title', root.textContent.includes('Where should we watch?'));
-  ok('onboarding: grouped toggles present', root.textContent.includes('Claude & Gemini') && root.textContent.includes('Perplexity & Copilot'));
+  // Updated Design v1: one toggle per provider (incl. "Microsoft Copilot").
+  ok('onboarding: per-provider toggles (5)', root.querySelectorAll('.switch[data-site]').length === 5);
+  ok(
+    'onboarding: each provider listed individually',
+    ['ChatGPT', 'Claude', 'Gemini', 'Perplexity', 'Microsoft Copilot'].every((n) => root.textContent.includes(n))
+  );
 
-  // turn Perplexity & Copilot off
-  const grp = root.querySelector('.switch[data-group="perplexityCopilot"]');
-  grp.checked = false;
-  grp.dispatchEvent(new dom.window.Event('change'));
+  // turn Perplexity off; Copilot must stay independent
+  const ppx = root.querySelector('.switch[data-site="perplexity"]');
+  ppx.checked = false;
+  ppx.dispatchEvent(new dom.window.Event('change'));
 
   // Start protecting me
   root.querySelector('.cta').click();
@@ -244,15 +249,15 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   ok('onboarding: finish persists settings', !!fin);
   ok('onboarding: sensitivity chosen saved', fin.patch.sensitivity === 'strict');
   ok('onboarding: onboardingComplete true', fin.patch.onboardingComplete === true);
-  ok('onboarding: group expands to enabledSites', fin.patch.enabledSites.perplexity === false && fin.patch.enabledSites.copilot === false);
-  ok('onboarding: claude+gemini still on', fin.patch.enabledSites.claude === true && fin.patch.enabledSites.gemini === true);
+  ok('onboarding: only the toggled site is off', fin.patch.enabledSites.perplexity === false && fin.patch.enabledSites.copilot === true);
+  ok('onboarding: others still on', fin.patch.enabledSites.claude === true && fin.patch.enabledSites.gemini === true && fin.patch.enabledSites.chatgpt === true);
   ok('onboarding: onDone (close tab) called', doneCalled === true);
   ok('onboarding api exposes state', ob.getState().step === 3);
 }
 
 /* ----------------------------------- site registry (DRY #4) ------------- */
 {
-  const { SITES, SITE_IDS, manifestMatchPatterns, siteForHost, groupsToEnabledSites, defaultEnabledSites } =
+  const { SITES, SITE_IDS, manifestMatchPatterns, siteForHost, defaultEnabledSites } =
     await import('../shared/sites.js');
   const { readFileSync } = await import('node:fs');
   const { fileURLToPath } = await import('node:url');
@@ -263,7 +268,7 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   ok('registry: defaults all-on', Object.values(defaultEnabledSites()).every(Boolean) && Object.keys(defaultEnabledSites()).length === 5);
   ok('registry: host resolution', siteForHost('chatgpt.com').id === 'chatgpt' && siteForHost('www.perplexity.ai').id === 'perplexity');
   ok('registry: unknown host -> null', siteForHost('example.com') === null);
-  ok('registry: groups expand', groupsToEnabledSites({ chatgpt: true, claudeGemini: false, perplexityCopilot: true }).gemini === false);
+  ok('registry: copilot full label', SITES.find((s) => s.id === 'copilot').label === 'Microsoft Copilot');
 
   // MANIFEST DRIFT GUARD: manifest host arrays must equal the registry.
   const manifest = JSON.parse(readFileSync(join(ROOT, 'manifest.json'), 'utf8'));

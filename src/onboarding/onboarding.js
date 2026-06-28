@@ -9,7 +9,7 @@
 
 import { MSG } from '../shared/storage.js';
 import { SENSITIVITY, DEFAULT_SENSITIVITY } from '../shared/constants.js';
-import { SITE_GROUPS, groupsToEnabledSites } from '../shared/sites.js';
+import { SITES } from '../shared/sites.js';
 import { h as el } from '../shared/h.js';
 
 export function initOnboarding(opts = {}) {
@@ -21,7 +21,8 @@ export function initOnboarding(opts = {}) {
   const state = {
     step: 1,
     sensitivity: DEFAULT_SENSITIVITY,
-    groups: Object.fromEntries(SITE_GROUPS.map((g) => [g.key, true])),
+    // One entry per provider, all on by default (Design v1, updated Screen E).
+    sites: Object.fromEntries(SITES.map((s) => [s.id, true])),
     customDomains: [],
   };
 
@@ -75,15 +76,15 @@ export function initOnboarding(opts = {}) {
     ];
   }
 
-  function siteToggle(label, key) {
+  function siteToggle(label, id) {
     return el('label.toggle-row', {}, [
       el('span.toggle-row__label', { text: label }),
       el('input.switch', {
         type: 'checkbox',
-        'data-group': key,
-        checked: state.groups[key],
+        'data-site': id,
+        checked: state.sites[id],
         onchange: (e) => {
-          state.groups[key] = e.target.checked;
+          state.sites[id] = e.target.checked;
         },
       }),
     ]);
@@ -99,7 +100,7 @@ export function initOnboarding(opts = {}) {
       meta(3),
       el('h1', { text: 'Where should we watch?' }),
       el('p.sub', { text: 'On by default for the major AI tools.' }),
-      ...SITE_GROUPS.map((g) => siteToggle(g.label, g.key)),
+      ...SITES.map((s) => siteToggle(s.label, s.id)),
       domain,
       el('button.asg-btn.asg-btn--primary.cta', {
         type: 'button',
@@ -115,7 +116,7 @@ export function initOnboarding(opts = {}) {
   }
 
   async function finish(domainValue) {
-    const enabledSites = groupsToEnabledSites(state.groups);
+    const enabledSites = { ...state.sites };
     const customDomains = [];
     const v = (domainValue || '').trim().toLowerCase().replace(/^https?:\/\//, '');
     if (v) customDomains.push(v);

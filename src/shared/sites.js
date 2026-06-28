@@ -15,7 +15,6 @@ export const SITES = [
   {
     id: 'chatgpt',
     label: 'ChatGPT',
-    group: 'chatgpt',
     inPopup: true,
     hosts: ['chatgpt.com', 'chat.openai.com'],
     selectors: {
@@ -31,7 +30,6 @@ export const SITES = [
   {
     id: 'claude',
     label: 'Claude',
-    group: 'claudeGemini',
     inPopup: true,
     hosts: ['claude.ai'],
     selectors: {
@@ -51,7 +49,6 @@ export const SITES = [
   {
     id: 'gemini',
     label: 'Gemini',
-    group: 'claudeGemini',
     inPopup: true,
     hosts: ['gemini.google.com'],
     selectors: {
@@ -67,7 +64,6 @@ export const SITES = [
   {
     id: 'perplexity',
     label: 'Perplexity',
-    group: 'perplexityCopilot',
     inPopup: true,
     hosts: ['www.perplexity.ai'],
     selectors: {
@@ -78,8 +74,7 @@ export const SITES = [
   },
   {
     id: 'copilot',
-    label: 'Copilot',
-    group: 'perplexityCopilot',
+    label: 'Microsoft Copilot',
     inPopup: false,
     hosts: ['copilot.microsoft.com'],
     selectors: {
@@ -105,16 +100,4 @@ export function manifestMatchPatterns() {
 /** Find the registry entry for a hostname (exact or subdomain match). */
 export function siteForHost(hostname) {
   return SITES.find((s) => s.hosts.some((h) => hostname === h || hostname.endsWith('.' + h))) || null;
-}
-
-/** Onboarding groups, in display order, derived from the registry. */
-export const SITE_GROUPS = [
-  { key: 'chatgpt', label: 'ChatGPT' },
-  { key: 'claudeGemini', label: 'Claude & Gemini' },
-  { key: 'perplexityCopilot', label: 'Perplexity & Copilot' },
-];
-
-/** Expand onboarding group choices into a per-site enabledSites map. */
-export function groupsToEnabledSites(groups) {
-  return Object.fromEntries(SITES.map((s) => [s.id, groups[s.group] !== false]));
 }
