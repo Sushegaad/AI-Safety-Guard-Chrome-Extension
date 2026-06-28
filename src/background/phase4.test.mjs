@@ -277,7 +277,8 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   const { fileURLToPath } = await import('node:url');
   const { dirname, join } = await import('node:path');
   const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-  const { rootVars } = await import('../../scripts/gen-tokens.mjs');
+  const { rootVars, generateTokensCss } = await import('../../scripts/gen-tokens.mjs');
+  const { componentCss } = await import('../shared/styles.js');
 
   const css = readFileSync(join(ROOT, 'src/shared/tokens.css'), 'utf8');
   const root = css.match(/:root\s*\{([\s\S]*?)\}/)[1];
@@ -291,6 +292,10 @@ ok('withDefaults keeps override', withDefaults({ enabledSites: { claude: false }
   }
   ok('tokens.css :root is generated from constants (no drift)', drift === 0);
   ok('tokens.css covers every constant token', Object.keys(fromConstants).every((k) => k in inCss));
+  // The shared component classes (single source) must be present verbatim.
+  ok('tokens.css contains the shared component classes', css.includes(componentCss().trim()));
+  // tokens.css must equal the generator output exactly (no hand-edits).
+  ok('tokens.css equals the generator output', css === generateTokensCss());
 }
 
 /* ---------------------------------------------------------------- report */
