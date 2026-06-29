@@ -40,7 +40,7 @@ Any usage analytics are **aggregate and non-identifying**, can be turned off in 
 ## Permissions and why we need them
 
 - **storage** — to save your settings and the counter described above, on your device.
-- **activeTab / scripting** — to run the local scanner and show the badge and warning UI on the AI sites you choose.
+- **offscreen** — to run the bundled PDF text extractor locally so attached PDFs can be scanned in your browser. It makes no network requests.
 - **Host permissions** (specific AI site URLs only) — the extension requests access **only** to the supported AI tools (and custom domains you add). It does **not** request access to all sites.
 
 We do not request access to your browsing history, bookmarks, downloads, or any site beyond the AI tools listed above.

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Safety Guard — Think before you send</title>
+  <meta name="description" content="A free, 100% on-device Chrome extension that warns you before private information reaches an AI tool. Scanning happens in your browser; nothing is uploaded." />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --trust:#3B5BDB; --trust-hover:#2F4BC4; --trust-soft:#EAEDFB;
+      --ink:#1A1A2E; --paper:#F8F7F4; --muted:#6B7280; --border:#E6E4DF;
+      --surface:#FFFFFF; --on-trust:#FFFFFF;
+      --safe-fg:#4A725F; --safe-bg:#E8F0EB;
+      --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-pill:999px;
+      --ui:"Hanken Grotesk",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      --mono:"Spline Sans Mono",ui-monospace,SFMono-Regular,monospace;
+      --shadow-card:0 2px 8px rgba(26,26,46,.06);
+      --shadow-lift:0 12px 32px rgba(26,26,46,.12);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--ui);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased}
+    a{color:var(--trust);text-decoration:none}
+    a:hover{text-decoration:underline}
+    img{max-width:100%;display:block}
+    h1,h2,h3{font-weight:600;line-height:1.2;letter-spacing:-.01em}
+    .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+    .skip{position:absolute;left:-999px}
+    .skip:focus{left:16px;top:12px;background:var(--surface);padding:8px 12px;border-radius:var(--radius-sm);z-index:50}
+    :focus-visible{outline:2px solid var(--trust);outline-offset:2px}
+
+    /* nav */
+    header.nav{position:sticky;top:0;z-index:40;background:rgba(248,247,244,.85);backdrop-filter:saturate(1.2) blur(8px);border-bottom:1px solid var(--border)}
+    .nav .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+    .nav img{height:26px;width:auto}
+    .nav nav{display:flex;gap:22px;font-size:14px;font-weight:500}
+    .nav nav a{color:var(--ink)}
+    @media(max-width:680px){.nav nav{display:none}}
+
+    /* hero */
+    .hero{padding:64px 0 28px;text-align:center}
+    .hero .mark{width:84px;height:84px;margin:0 auto 18px}
+    .hero h1{font-size:clamp(30px,5vw,46px);margin:0 0 12px}
+    .hero .lede{font-size:clamp(16px,2.4vw,20px);color:var(--muted);max-width:680px;margin:0 auto 26px}
+    .tag{display:inline-block;background:var(--trust-soft);color:var(--trust);font-weight:600;font-size:13px;padding:4px 12px;border-radius:var(--radius-pill);margin-bottom:18px}
+    .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--ui);font-weight:600;font-size:15px;padding:12px 20px;border-radius:var(--radius-md);border:1px solid transparent;cursor:pointer}
+    .btn--primary{background:var(--trust);color:var(--on-trust)}
+    .btn--primary:hover{background:var(--trust-hover);text-decoration:none}
+    .btn--ghost{background:var(--surface);color:var(--ink);border-color:var(--border)}
+    .btn--ghost:hover{text-decoration:none;border-color:var(--muted)}
+
+    .hero-banner{margin:34px auto 0;max-width:900px;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lift);border:1px solid var(--border)}
+
+    section{padding:52px 0;border-top:1px solid var(--border)}
+    section h2{font-size:clamp(22px,3.2vw,30px);margin:0 0 8px}
+    .section-sub{color:var(--muted);margin:0 0 28px;max-width:680px}
+
+    .lead-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;box-shadow:var(--shadow-card)}
+    .who-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+    .who-grid .pill{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;font-size:15px}
+
+    .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .feature{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px 18px 20px;box-shadow:var(--shadow-card)}
+    .feature h3{font-size:16px;margin:0 0 6px;display:flex;align-items:center;gap:9px}
+    .feature p{margin:0;color:var(--muted);font-size:14.5px}
+    .dot{width:9px;height:9px;border-radius:var(--radius-pill);background:var(--trust);flex:0 0 auto}
+
+    .shots{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+    .shot figure{margin:0}
+    .shot img{border-radius:var(--radius-md);border:1px solid var(--border);box-shadow:var(--shadow-card);background:var(--surface)}
+    .shot figcaption{margin-top:10px;font-size:14px;color:var(--muted)}
+    .shot--wide{grid-column:1/-1}
+
+    /* pdf */
+    .pdf-frame{width:100%;height:78vh;min-height:520px;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface)}
+    .pdf-fallback{color:var(--muted);font-size:14px;margin-top:10px}
+
+    /* privacy */
+    .privacy{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 30px;box-shadow:var(--shadow-card)}
+    .privacy h3{font-size:17px;margin:22px 0 6px}
+    .privacy h3:first-child{margin-top:0}
+    .privacy p,.privacy li{color:#33333f;font-size:15px}
+    .privacy ul{margin:8px 0 0;padding-left:20px}
+    .privacy .meta{color:var(--muted);font-size:14px;margin:0 0 14px}
+    .callout{background:var(--safe-bg);color:var(--safe-fg);border-radius:var(--radius-md);padding:12px 16px;font-weight:500;font-size:14.5px;margin:0 0 18px}
+
+    footer{border-top:1px solid var(--border);padding:36px 0 56px;text-align:center;color:var(--muted);font-size:14px}
+    footer img{height:24px;margin:0 auto 14px}
+    footer a{font-weight:500}
+    .built{margin-top:10px;font-size:13px}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <div class="wrap">
+      <img src="assets/logo-lockup.png" alt="AI Safety Guard" />
+      <nav aria-label="Primary">
+        <a href="#what">What it does</a>
+        <a href="#features">Features</a>
+        <a href="#screens">Screenshots</a>
+        <a href="#best-practices">Best practices</a>
+        <a href="#privacy">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="wrap">
+        <img class="mark" src="assets/logo-mark.png" alt="" />
+        <p class="tag">100% on-device · no network calls</p>
+        <h1>Think before you send.</h1>
+        <p class="lede">AI Safety Guard is a free Chrome extension that warns you before private information reaches an AI tool. All scanning happens in your browser, and nothing you type is uploaded.</p>
+        <div class="cta-row">
+          <a class="btn btn--primary" href="#best-practices">Read the best-practices guide</a>
+          <a class="btn btn--ghost" href="#privacy">Privacy policy</a>
+        </div>
+        <div class="hero-banner">
+          <img src="assets/hero-tile.png" alt="AI Safety Guard — warns you before private info reaches an AI" />
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT THIS DOES -->
+    <section id="what">
+      <div class="wrap">
+        <h2>What this does</h2>
+        <div class="lead-card">
+          <p style="margin-top:0">AI Safety Guard watches the message box on ChatGPT, Claude, Gemini, Perplexity, and Microsoft Copilot. As you type, it scans your text locally for sensitive information: emails, phone numbers, credit cards, SSNs, API keys, passwords, and confidential business, legal, financial, or health language.</p>
+          <p style="margin-bottom:0">If you try to send something risky, it pauses and shows a clear warning listing what it found, always masked, never the raw secret. You can redact the values, send anyway, or keep editing. Your text never leaves your device.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHO -->
+    <section id="who">
+      <div class="wrap">
+        <h2>Who this is for</h2>
+        <p class="section-sub">Anyone who pastes into an AI tool and would rather not leak something by accident.</p>
+        <div class="who-grid">
+          <div class="pill">Everyday AI users</div>
+          <div class="pill">Employees using AI at work</div>
+          <div class="pill">Students and researchers</div>
+          <div class="pill">Freelancers and consultants</div>
+          <div class="pill">Developers who paste keys or source</div>
+          <div class="pill">Security-conscious teams</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="wrap">
+        <h2>Features</h2>
+        <p class="section-sub">Calm, plain-English protection that stays out of your way until it matters.</p>
+        <div class="features">
+          <div class="feature"><h3><span class="dot"></span>Local scanning</h3><p>Prompts are analyzed on your device, never stored or uploaded.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Pre-send warning</h3><p>Lists exactly what was found, with masked values only, never the raw secret.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Live risk badge</h3><p>A small badge near the input box updates as you type.</p></div>
+          <div class="feature"><h3><span class="dot"></span>One-click redaction</h3><p>Swaps sensitive values for labels like [EMAIL] and [API_KEY].</p></div>
+          <div class="feature"><h3><span class="dot"></span>Attachment scanning</h3><p>Attach a PDF or Word file and it scans the text on your device, including hidden comments and metadata.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Three sensitivity modes</h3><p>Basic, Balanced, and Strict, switchable any time.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Per-site control</h3><p>Turn watching on or off per site, and add your own custom AI domains.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Accessible</h3><p>Fully keyboard operable with visible focus and screen-reader support, meeting WCAG 2.1 AA and Section 508.</p></div>
+          <div class="feature"><h3><span class="dot"></span>Least privilege</h3><p>Runs only on the supported AI sites and requests only the permissions it actually uses.</p></div>
+          <div class="feature"><h3><span class="dot"></span>No strings attached</h3><p>No accounts, no ads, no prompt logging, and no network calls at all.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section id="screens">
+      <div class="wrap">
+        <h2>Product screenshots</h2>
+        <p class="section-sub">From the product design for AI Safety Guard.</p>
+        <div class="shots">
+          <div class="shot shot--wide"><figure>
+            <img src="assets/shots/warning.png" alt="The pre-send warning dialog titled Before you send this, listing a masked API key, account number, and email address with risk levels, and buttons to redact, send anyway, or keep editing." />
+            <figcaption>The pre-send warning. Findings are always masked, with one tap to redact.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/in-context.png" alt="An AI chat compose box with AI Safety Guard active, highlighting sensitive customer details in the draft." />
+            <figcaption>The moment before sending, right in the chat box.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/redact.png" alt="The redact and review panel showing the message rewritten with bracketed labels such as NAME, EMAIL, ACCOUNT, and API_KEY, marked Safe, with a Looks good send button." />
+            <figcaption>Redact and review before the message goes out.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/popup.png" alt="The toolbar popup showing sensitivity modes, per-site toggles for ChatGPT, Claude, Gemini and Perplexity, and a count of risky sends caught." />
+            <figcaption>Toolbar popup: sensitivity, per-site control, and your saves.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/onboarding-1.png" alt="Onboarding step one, a safety net for AI, listing benefits: scans on your device, nothing stored, you are always in control." />
+            <figcaption>A short, plain-English first run.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/onboarding-2.png" alt="Onboarding step two, how careful should we be, offering Basic, Balanced (recommended), and Strict sensitivity." />
+            <figcaption>Pick a sensitivity that fits how you work.</figcaption>
+          </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/onboarding-3.png" alt="Onboarding step three, where should we watch, with toggles for ChatGPT, Claude, Gemini, Perplexity, and Microsoft Copilot." />
+            <figcaption>Choose which AI tools to watch.</figcaption>
+          </figure></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BEST PRACTICES PDF -->
+    <section id="best-practices">
+      <div class="wrap">
+        <h2>AI Safety best practices</h2>
+        <p class="section-sub">Practical guidance on using AI tools without leaking sensitive data. Read it below or download a copy.</p>
+        <div class="cta-row" style="justify-content:flex-start;margin-bottom:18px">
+          <a class="btn btn--primary" href="assets/AI-Safety-Best-Practices.pdf" download>Download the PDF</a>
+          <a class="btn btn--ghost" href="assets/AI-Safety-Best-Practices.pdf" target="_blank" rel="noopener">Open in a new tab</a>
+        </div>
+        <iframe class="pdf-frame" src="assets/AI-Safety-Best-Practices.pdf#view=FitH" title="AI Safety - Best Practices (PDF)" loading="lazy"></iframe>
+        <p class="pdf-fallback">If the document does not display above, use the download or open-in-new-tab buttons.</p>
+      </div>
+    </section>
+
+    <!-- PRIVACY -->
+    <section id="privacy">
+      <div class="wrap">
+        <h2>Privacy policy</h2>
+        <p class="section-sub">A readable version of the policy that ships with the extension.</p>
+        <div class="privacy">
+          <p class="meta"><strong>Effective date:</strong> June 27, 2026 · <strong>Applies to:</strong> AI Safety Guard Chrome Extension (v1.0.0)</p>
+          <p class="callout">Your prompts are scanned on your own device, and nothing you type is collected, transmitted, or stored by us.</p>
+
+          <h3>Summary</h3>
+          <ul>
+            <li>Scanning for sensitive information happens entirely in your browser. Your prompt text never leaves your device.</li>
+            <li>The extension makes no network calls at all. It does not collect, log, sell, or transmit your prompts, the sites you visit, or any personal information.</li>
+            <li>The extension stores only your settings and a single counter ("risky sends caught") in your browser's local storage. This never includes prompt text.</li>
+          </ul>
+
+          <h3>What the extension does</h3>
+          <p>When you type into a supported AI tool (ChatGPT, Claude, Gemini, Perplexity, Microsoft Copilot, or a custom domain you add), AI Safety Guard scans the text in your input box for sensitive information such as email addresses, phone numbers, credit-card and Social Security numbers, API keys, passwords, and confidential business, legal, financial, or health language. The text is analyzed in memory and discarded; it is not written to disk, sent to any server, or shared with anyone.</p>
+          <p>When you attach a PDF or Word (.docx) file, the extension reads and extracts the file's text inside your browser to scan it for personal data, including hidden comments and document metadata. The file and its contents are never uploaded. PDF parsing uses a bundled library that runs locally. You can turn attachment scanning off in settings.</p>
+
+          <h3>Information we store</h3>
+          <p>The extension uses your browser's local storage to remember your preferences and one usage counter:</p>
+          <ul>
+            <li>Whether the extension is enabled</li>
+            <li>Your chosen sensitivity level (Basic / Balanced / Strict)</li>
+            <li>Which sites you want watched, and any custom domains you add</li>
+            <li>Detection categories you have muted</li>
+            <li>Whether usage analytics are enabled</li>
+            <li>Whether onboarding is complete</li>
+            <li>A running count of how many times a warning was shown</li>
+          </ul>
+          <p>This data lives only on your device and is never uploaded. Prompt text is never part of this stored data. Uninstalling the extension removes all of it.</p>
+
+          <h3>Analytics</h3>
+          <p>Any usage analytics are aggregate and non-identifying, can be turned off in settings, and never include any portion of your prompt text. Events are limited to counts and categories (for example, that a warning was shown at a given risk level). The current release ships without any third-party analytics or telemetry SDKs.</p>
+
+          <h3>Permissions and why we need them</h3>
+          <ul>
+            <li><strong>storage</strong> — to save your settings and the counter above, on your device.</li>
+            <li><strong>offscreen</strong> — to run the bundled PDF text extractor locally; it makes no network requests.</li>
+            <li><strong>Host permissions</strong> (specific AI site URLs only) — access is requested only for the supported AI tools and any custom domains you add, never for all sites.</li>
+          </ul>
+          <p>We do not request access to your browsing history, bookmarks, or downloads.</p>
+
+          <h3>Data sharing and sale</h3>
+          <p>We do not sell, rent, or share your data, and we do not serve ads. Because we do not collect your prompts or personal information in the first place, there is nothing for us to share.</p>
+
+          <h3>Children</h3>
+          <p>AI Safety Guard is a general-purpose productivity tool and is not directed to children under 13.</p>
+
+          <h3>Changes to this policy</h3>
+          <p>If this policy changes, we will update the effective date above and publish the revised policy with the extension listing. Material changes will be highlighted in the release notes.</p>
+
+          <h3>Contact</h3>
+          <p>Questions about this policy can be directed to the maintainer at <a href="mailto:hemant.naik@gmail.com">hemant.naik@gmail.com</a> or via the Chrome Web Store listing's support channel.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <img src="assets/logo-lockup.png" alt="AI Safety Guard" />
+      <p>Built by Hemant Naik · <a href="https://www.linkedin.com/in/tanaji-naik/" target="_blank" rel="noopener">LinkedIn</a> · <a href="mailto:hemant.naik@gmail.com">hemant.naik@gmail.com</a></p>
+      <p class="built">Built March 2026</p>
+    </div>
+  </footer>
+</body>
+</html>
