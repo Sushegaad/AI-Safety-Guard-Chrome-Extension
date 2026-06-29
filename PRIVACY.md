@@ -27,15 +27,14 @@ The extension uses your browser's local storage (`chrome.storage.local`) to reme
 - Your chosen sensitivity level (Basic / Balanced / Strict)
 - Which sites you want watched, and any custom domains you add
 - Detection categories you have muted
-- Whether analytics are enabled
 - Whether onboarding is complete
 - `riskySubmissionsCaught` — a running count of how many times a warning was shown
 
 This data lives only on your device. It is never uploaded to us. **Prompt text is never part of this stored data.** Uninstalling the extension removes all of it.
 
-## Analytics
+## Analytics and telemetry
 
-Any usage analytics are **aggregate and non-identifying**, can be turned off in settings, and **never include any portion of your prompt text**. Events are limited to counts and categories (for example, that a warning was shown at a given risk level). The current release ships without any third-party analytics or telemetry SDKs.
+The extension collects **no analytics** and contains **no telemetry**. It makes no network calls, so nothing about you or your usage is sent anywhere. The only usage data is the local `riskySubmissionsCaught` count described above, which stays on your device and is shown in the popup.
 
 ## Permissions and why we need them
 

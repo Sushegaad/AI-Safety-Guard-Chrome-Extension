@@ -55,6 +55,12 @@
     .btn--ghost:hover{text-decoration:none;border-color:var(--muted)}
 
     .hero-banner{margin:34px auto 0;max-width:900px;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-lift);border:1px solid var(--border)}
+    .hero{border-top:none}
+    /* best-practices poster shown in full (no scroll container) */
+    .poster{max-width:780px;margin:32px auto 0}
+    .poster img{width:100%;height:auto;border-radius:var(--radius-md);box-shadow:var(--shadow-lift);border:1px solid var(--border)}
+    .shots-group{font-size:18px;margin:30px 0 14px}
+    .shots-group:first-of-type{margin-top:6px}
 
     section{padding:52px 0;border-top:1px solid var(--border)}
     section h2{font-size:clamp(22px,3.2vw,30px);margin:0 0 8px}
@@ -102,32 +108,32 @@
     <div class="wrap">
       <img src="assets/logo-lockup.png" alt="AI Safety Guard" />
       <nav aria-label="Primary">
+        <a href="#best-practices">Best practices</a>
         <a href="#what">What it does</a>
         <a href="#features">Features</a>
         <a href="#screens">Screenshots</a>
-        <a href="#best-practices">Best practices</a>
         <a href="#privacy">Privacy</a>
       </nav>
     </div>
   </header>
 
   <main id="main">
-    <!-- HERO -->
-    <div class="hero">
+    <!-- TOP: BEST PRACTICES GUIDE -->
+    <section id="best-practices" class="hero">
       <div class="wrap">
         <img class="mark" src="assets/logo-mark.png" alt="" />
-        <p class="tag">100% on-device · no network calls</p>
-        <h1>Think before you send.</h1>
-        <p class="lede">AI Safety Guard is a free Chrome extension that warns you before private information reaches an AI tool. All scanning happens in your browser, and nothing you type is uploaded.</p>
+        <p class="tag">Free guide from AI Safety Guard</p>
+        <h1>What you should never type into an AI chatbot</h1>
+        <p class="lede">A one-page guide to using AI tools without leaking sensitive data. The full poster is right below. Download a copy or open it in a new tab.</p>
         <div class="cta-row">
-          <a class="btn btn--primary" href="#best-practices">Read the best-practices guide</a>
-          <a class="btn btn--ghost" href="#privacy">Privacy policy</a>
+          <a class="btn btn--primary" href="assets/AI-Safety-Best-Practices.pdf" download>Download the PDF</a>
+          <a class="btn btn--ghost" href="assets/AI-Safety-Best-Practices.pdf" target="_blank" rel="noopener">Open in a new tab</a>
         </div>
-        <div class="hero-banner">
-          <img src="assets/hero-tile.png" alt="AI Safety Guard — warns you before private info reaches an AI" />
-        </div>
+        <figure class="poster">
+          <img src="assets/best-practices-poster.png" alt="AI Safety best-practices poster: what you should never type into an AI chatbot. Five categories to keep to yourself — government and legal IDs, financial and account info, work secrets and code, medical and therapy details, and passwords and security answers — plus smart habits and the golden rule: if you wouldn't post it publicly on a billboard, don't paste it into an AI." />
+        </figure>
       </div>
-    </div>
+    </section>
 
     <!-- WHAT THIS DOES -->
     <section id="what">
@@ -181,23 +187,21 @@
       <div class="wrap">
         <h2>Product screenshots</h2>
         <p class="section-sub">From the product design for AI Safety Guard.</p>
+
+        <h3 class="shots-group">In-context and warning</h3>
         <div class="shots">
-          <div class="shot shot--wide"><figure>
-            <img src="assets/shots/warning.png" alt="The pre-send warning dialog titled Before you send this, listing a masked API key, account number, and email address with risk levels, and buttons to redact, send anyway, or keep editing." />
-            <figcaption>The pre-send warning. Findings are always masked, with one tap to redact.</figcaption>
-          </figure></div>
           <div class="shot"><figure>
             <img src="assets/shots/in-context.png" alt="An AI chat compose box with AI Safety Guard active, highlighting sensitive customer details in the draft." />
             <figcaption>The moment before sending, right in the chat box.</figcaption>
           </figure></div>
           <div class="shot"><figure>
-            <img src="assets/shots/redact.png" alt="The redact and review panel showing the message rewritten with bracketed labels such as NAME, EMAIL, ACCOUNT, and API_KEY, marked Safe, with a Looks good send button." />
-            <figcaption>Redact and review before the message goes out.</figcaption>
+            <img src="assets/shots/warning.png" alt="The pre-send warning dialog titled Before you send this, listing a masked API key, account number, and email address with risk levels, and buttons to redact, send anyway, or keep editing." />
+            <figcaption>The pre-send warning. Findings are always masked, with one tap to redact.</figcaption>
           </figure></div>
-          <div class="shot"><figure>
-            <img src="assets/shots/popup.png" alt="The toolbar popup showing sensitivity modes, per-site toggles for ChatGPT, Claude, Gemini and Perplexity, and a count of risky sends caught." />
-            <figcaption>Toolbar popup: sensitivity, per-site control, and your saves.</figcaption>
-          </figure></div>
+        </div>
+
+        <h3 class="shots-group">Setup</h3>
+        <div class="shots">
           <div class="shot"><figure>
             <img src="assets/shots/onboarding-1.png" alt="Onboarding step one, a safety net for AI, listing benefits: scans on your device, nothing stored, you are always in control." />
             <figcaption>A short, plain-English first run.</figcaption>
@@ -210,21 +214,11 @@
             <img src="assets/shots/onboarding-3.png" alt="Onboarding step three, where should we watch, with toggles for ChatGPT, Claude, Gemini, Perplexity, and Microsoft Copilot." />
             <figcaption>Choose which AI tools to watch.</figcaption>
           </figure></div>
+          <div class="shot"><figure>
+            <img src="assets/shots/popup.png" alt="The toolbar popup showing sensitivity modes, per-site toggles for ChatGPT, Claude, Gemini and Perplexity, and a count of risky sends caught." />
+            <figcaption>Toolbar popup: sensitivity, per-site control, and your saves.</figcaption>
+          </figure></div>
         </div>
-      </div>
-    </section>
-
-    <!-- BEST PRACTICES PDF -->
-    <section id="best-practices">
-      <div class="wrap">
-        <h2>AI Safety best practices</h2>
-        <p class="section-sub">Practical guidance on using AI tools without leaking sensitive data. Read it below or download a copy.</p>
-        <div class="cta-row" style="justify-content:flex-start;margin-bottom:18px">
-          <a class="btn btn--primary" href="assets/AI-Safety-Best-Practices.pdf" download>Download the PDF</a>
-          <a class="btn btn--ghost" href="assets/AI-Safety-Best-Practices.pdf" target="_blank" rel="noopener">Open in a new tab</a>
-        </div>
-        <iframe class="pdf-frame" src="assets/AI-Safety-Best-Practices.pdf#view=FitH" title="AI Safety - Best Practices (PDF)" loading="lazy"></iframe>
-        <p class="pdf-fallback">If the document does not display above, use the download or open-in-new-tab buttons.</p>
       </div>
     </section>
 
@@ -255,14 +249,13 @@
             <li>Your chosen sensitivity level (Basic / Balanced / Strict)</li>
             <li>Which sites you want watched, and any custom domains you add</li>
             <li>Detection categories you have muted</li>
-            <li>Whether usage analytics are enabled</li>
             <li>Whether onboarding is complete</li>
             <li>A running count of how many times a warning was shown</li>
           </ul>
           <p>This data lives only on your device and is never uploaded. Prompt text is never part of this stored data. Uninstalling the extension removes all of it.</p>
 
-          <h3>Analytics</h3>
-          <p>Any usage analytics are aggregate and non-identifying, can be turned off in settings, and never include any portion of your prompt text. Events are limited to counts and categories (for example, that a warning was shown at a given risk level). The current release ships without any third-party analytics or telemetry SDKs.</p>
+          <h3>Analytics and telemetry</h3>
+          <p>The extension collects no analytics and contains no telemetry. It makes no network calls, so nothing about you or your usage is sent anywhere. The only usage data is the local "risky sends caught" count described above, which stays on your device and is shown in the popup.</p>
 
           <h3>Permissions and why we need them</h3>
           <ul>

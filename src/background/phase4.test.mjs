@@ -47,7 +47,7 @@ const { routeMessage } = await import('./service-worker.js');
 ok('schema: sensitivity default balanced', DEFAULT_SETTINGS.sensitivity === 'balanced');
 ok('schema: no rewrite settings (B2 removed)', !('allowRewrite' in DEFAULT_SETTINGS) && !('rewriteApiEndpoint' in DEFAULT_SETTINGS));
 ok('schema: scanAttachments on by default', DEFAULT_SETTINGS.scanAttachments === true);
-ok('schema: analytics on by default', DEFAULT_SETTINGS.analyticsEnabled === true);
+ok('schema: no analytics field (no telemetry)', !('analyticsEnabled' in DEFAULT_SETTINGS));
 ok('schema: onboarding incomplete by default', DEFAULT_SETTINGS.onboardingComplete === false);
 ok('schema: counter starts at 0', DEFAULT_SETTINGS.riskySubmissionsCaught === 0);
 ok('schema: all sites enabled by default', Object.values(DEFAULT_SETTINGS.enabledSites).every(Boolean));
