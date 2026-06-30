@@ -46,5 +46,57 @@
     "terrace", "ter", "circle", "cir", "highway", "hwy", "parkway", "pkwy"
   ],
 
-  "internalTlds": ["internal", "local", "corp", "intra", "lan", "intranet"]
+  "internalTlds": ["internal", "local", "corp", "intra", "lan", "intranet"],
+
+  "educationKeywords": [
+    "student id", "gpa", "grade point average", "transcript", "report card",
+    "class rank", "disciplinary record", "504 plan", "ferpa", "enrollment record",
+    "academic standing", "detention record"
+  ],
+
+  "workplaceKeywords": [
+    "performance improvement plan", "performance review", "disciplinary action",
+    "written warning", "probation period", "misconduct", "severance", "layoff",
+    "laid off", "headcount reduction", "salary is", "annual salary",
+    "base salary", "salary of", "compensation package",
+    "termination plan", "being let go"
+  ],
+
+  "specialCategoryKeywords": [
+    "ethnic origin", "racial origin", "religious belief", "political opinion",
+    "political affiliation", "trade union member", "union representative",
+    "union membership", "sexual orientation", "gender identity", "biometric data",
+    "genetic data", "immigration status", "disability status"
+  ],
+
+  "regulatedKeywords": [
+    "hipaa", "ferpa", "glba", "pci dss", "cardholder data", "ccpa", "cpra",
+    "pipeda", "uk gdpr", "gdpr", "data protection act", "nis2 directive",
+    "protected health information", "personally identifiable information"
+  ],
+
+  "restrictionKeywords": [
+    "strictly confidential", "privileged and confidential",
+    "do not share", "do not disclose", "do not forward", "not for distribution",
+    "not for third-party", "third-party processing", "internal use only",
+    "for internal use only", "not for external", "do not send to ai", "need-to-know"
+  ],
+
+  "companySecretKeywords": [
+    "acquisition target", "merger plan", "cap table", "term sheet",
+    "product roadmap", "unreleased product", "go-to-market", "pricing strategy",
+    "board deck", "board of directors", "strategic plan", "competitive analysis",
+    "launch plan", "m&a"
+  ],
+
+  "childrenKeywords": [
+    "safeguarding", "child protection", "custody arrangement", "custody",
+    "foster care", "minor child", "underage", "cyberbullying"
+  ],
+
+  "locationKeywords": [
+    "gps coordinates", "geolocation", "latitude", "longitude", "badge entry",
+    "badge log", "badge swipe", "travel itinerary", "whereabouts",
+    "device identifier", "imei", "mac address", "ip address"
+  ]
 }

@@ -50,6 +50,16 @@ export const CATEGORY = {
   phone:          { type: 'Phone number',     summary: 'phone number',      redactLabel: '[PHONE]',   risk: 'medium' },
   address:        { type: 'Physical address', summary: 'physical address',  redactLabel: '[ADDRESS]', risk: 'medium' },
   source_code:    { type: 'Source code',      summary: 'source code',       redactLabel: '[CODE]',    risk: 'medium' },
+  gov_id:          { type: 'Government ID',        summary: 'government ID',         redactLabel: '[GOV_ID]',    risk: 'critical' },
+  education:       { type: 'Education record',     summary: 'education record',      redactLabel: '[EDU]',       risk: 'high' },
+  workplace:       { type: 'Workplace/HR data',    summary: 'workplace data',        redactLabel: '[HR]',        risk: 'high' },
+  special_category:{ type: 'Special-category data', summary: 'special-category data', redactLabel: '[SENSITIVE]', risk: 'high' },
+  regulated:       { type: 'Regulated-data signal', summary: 'regulated-data signal', redactLabel: '[REGULATED]', risk: 'high' },
+  restriction:     { type: 'Restriction notice',   summary: 'restriction notice',    redactLabel: '[RESTRICTED]', risk: 'high' },
+  company_secret:  { type: 'Company secret',       summary: 'company secret',        redactLabel: '[INTERNAL]',  risk: 'high' },
+  children:        { type: "Children's data",      summary: "children's data",       redactLabel: '[MINOR]',     risk: 'high' },
+  location:        { type: 'Location/tracking',    summary: 'location data',         redactLabel: '[LOCATION]',  risk: 'high' },
+  file_path:       { type: 'File path',            summary: 'file path',             redactLabel: '[PATH]',      risk: 'medium' },
 };
 
 /* ============================================================================
@@ -142,6 +152,14 @@ export const mask = {
       return raw.slice(0, 16) + ELLIPSIS;
     }
   },
+  gov_id(raw) {
+    const a = String(raw).replace(/[^A-Za-z0-9]/g, '');
+    return DOTS + a.slice(-4);
+  },
+  file_path(raw) {
+    const parts = String(raw).split(/[\\/]/);
+    return ELLIPSIS + '\\' + parts[parts.length - 1];
+  },
   keyword(raw) {
     const s = raw.trim();
     return s.length > 24 ? s.slice(0, 24) + ELLIPSIS : s;
@@ -178,6 +196,16 @@ const RE = {
     /\b(?:10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(?:1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|127\.0\.0\.1|localhost)(?::\d{2,5})?\b/g,
   name: /\b([A-Z][a-z]{1,15})\s+([A-Z][a-z]{1,15})\b/g,
   codeFence: /```[\s\S]*?```|`[^`\n]{8,}`/g,
+  // Government IDs — keyword-anchored; the captured value must contain a digit.
+  passport: /\bpassport\b\s*(?:no\.?|number|#|:)?\s*([A-Z0-9]{6,9})\b/gi,
+  driversLicense: /\b(?:driver'?s?|driving|drivers)\s+licen[sc]e\b\s*(?:no\.?|number|#|:)?\s*([A-Z0-9]{5,18})\b/gi,
+  nationalId: /\b(?:national\s+id(?:entity)?(?:\s+(?:card|number|no\.?))?|national\s+insurance(?:\s+number)?|nino|residence\s+permit|biometric\s+residence\s+permit|brp|sin|tax\s+id(?:entification)?(?:\s+number)?|tin)\b\s*(?:no\.?|number|#|:)?\s*([A-Z0-9][A-Z0-9-]{4,})\b/gi,
+  // Labeled identifiers (alphanumeric, broader than the bare-# account rule).
+  labeledId: /\b(?:account|acct|customer|member|student|patient|case|ticket|reference|ref|order|policy|claim|invoice|employee|badge)\b\s*(?:id|no\.?|number|#)?\s*[:#]?\s*#?\s*([A-Za-z]*\d[A-Za-z0-9-]{3,})\b/gi,
+  gpsCoords: /[-+]?\d{1,2}\.\d{4,}\s*,\s*[-+]?\d{1,3}\.\d{4,}/g,
+  winPath: /\b[A-Za-z]:\\(?:[^\\/:*?"<>|\r\n]+\\)+[^\\/:*?"<>|\r\n]+/g,
+  uncPath: /\\\\[A-Za-z0-9._$-]+\\[^\s\\]+(?:\\[^\s\\]+)*/g,
+  unixPath: /(?:\/(?:home|Users))\/[A-Za-z0-9._-]+\/\S+/g,
 };
 
 function pushAll(out, re, category, text, validate) {
@@ -227,6 +255,24 @@ function detectKeywords(out, text, list, category, opts = {}) {
     end: first.idx + first.kw.length,
   });
   return hits.length;
+}
+
+// Children's data: explicit safeguarding/custody terms fire on their own;
+// otherwise require a minor age co-occurring with a school/childcare cue.
+function detectChildren(out, text) {
+  const lower = text.toLowerCase();
+  for (const kw of RULES.childrenKeywords) {
+    const idx = lower.indexOf(kw);
+    if (idx !== -1) {
+      out.push({ category: 'children', rawValue: text.slice(idx, idx + kw.length), start: idx, end: idx + kw.length });
+      return;
+    }
+  }
+  const ageM = text.match(/\bage[d]?\s*(1?\d)\b/i);
+  const school = /\b(?:elementary|primary school|kindergarten|preschool|middle school|day\s?care|nursery|grade\s*[1-9]|year\s*[1-9]|pupil|schoolchild)\b/i.exec(text);
+  if (ageM && parseInt(ageM[1], 10) <= 17 && school) {
+    out.push({ category: 'children', rawValue: school[0], start: school.index, end: school.index + school[0].length });
+  }
 }
 
 /* ============================================================================
@@ -282,6 +328,15 @@ export function detect(text) {
   }
   pushAll(raw, RE.ccCandidate, 'credit_card', text, (m) => luhnValid(m[0].replace(/\D/g, '')));
   pushAll(raw, RE.ssn, 'ssn', text);
+  // Government IDs (passport, driver's license, national/residence/tax IDs).
+  for (const reKey of ['passport', 'driversLicense', 'nationalId']) {
+    for (const m of text.matchAll(RE[reKey])) {
+      const v = m[1];
+      if (!v || !/\d/.test(v)) continue; // must contain a digit (drops "passport provided")
+      const start = m.index + m[0].lastIndexOf(v);
+      raw.push({ category: 'gov_id', rawValue: v, start, end: start + v.length });
+    }
+  }
 
   // --- High: account, health, financial, legal, internal urls ---
   for (const m of text.matchAll(RE.account)) {
@@ -292,10 +347,26 @@ export function detect(text) {
     const start = m.index + m[0].lastIndexOf(val);
     raw.push({ category: 'account_number', rawValue: val, start, end: start + val.length });
   }
+  // Broader labeled identifiers (alphanumeric customer/member/student/case IDs).
+  for (const m of text.matchAll(RE.labeledId)) {
+    const val = m[1];
+    const start = m.index + m[0].lastIndexOf(val);
+    raw.push({ category: 'account_number', rawValue: val, start, end: start + val.length });
+  }
   detectKeywords(raw, text, RULES.healthKeywords, 'health');
   const finHits = detectKeywords(raw, text, RULES.financialKeywords, 'financial');
   if (!finHits) pushAll(raw, RE.currency, 'financial', text);
   detectKeywords(raw, text, RULES.legalKeywords, 'legal', { minDistinct: 2 });
+  // New protected-data categories (US + EU).
+  detectKeywords(raw, text, RULES.educationKeywords, 'education');
+  detectKeywords(raw, text, RULES.workplaceKeywords, 'workplace');
+  detectKeywords(raw, text, RULES.specialCategoryKeywords, 'special_category');
+  detectKeywords(raw, text, RULES.regulatedKeywords, 'regulated');
+  detectKeywords(raw, text, RULES.restrictionKeywords, 'restriction');
+  detectKeywords(raw, text, RULES.companySecretKeywords, 'company_secret');
+  detectKeywords(raw, text, RULES.locationKeywords, 'location');
+  detectChildren(raw, text);
+  pushAll(raw, RE.gpsCoords, 'location', text);
   pushAll(raw, RE.privateIp, 'internal_url', text);
   for (const m of text.matchAll(/\bhttps?:\/\/[A-Za-z0-9.-]+\.(?:internal|local|corp|intra|lan|intranet)\b[^\s]*/gi)) {
     raw.push({ category: 'internal_url', rawValue: m[0], start: m.index, end: m.index + m[0].length });
@@ -305,6 +376,10 @@ export function detect(text) {
   pushAll(raw, RE.email, 'email', text);
   pushAll(raw, RE.phone, 'phone', text);
   pushAll(raw, RE.address, 'address', text);
+  // File paths (document-metadata signal when pasted as text).
+  pushAll(raw, RE.winPath, 'file_path', text);
+  pushAll(raw, RE.uncPath, 'file_path', text);
+  pushAll(raw, RE.unixPath, 'file_path', text);
   // Source code: fenced/inline blocks, or 2+ distinct code keywords.
   let codeFound = false;
   for (const m of text.matchAll(RE.codeFence)) {

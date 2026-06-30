@@ -107,6 +107,58 @@ ok('code keywords good', has('function foo() { return bar; }', 'source_code'));
 ok('customer name detected with identifier', has('summarize note from Sarah Chen, account #88291', 'customer_data'));
 ok('lone name NOT flagged', !has('I spoke with Sarah Chen yesterday about lunch', 'customer_data'));
 
+/* ----------------------------------------- expanded coverage (US + EU) v2 */
+// Government IDs — CRITICAL (keyword-anchored)
+ok('gov: passport', has('Passport: YA1234567', 'gov_id'));
+ok('gov: passport critical', detect('Passport: YA1234567').riskLevel === 'critical');
+ok('gov: drivers license', has("driver's license D1234567", 'gov_id'));
+ok('gov: national insurance', has('National Insurance Number QQ123456C', 'gov_id'));
+ok('gov: no false positive (no digit)', !has('please bring your passport tomorrow', 'gov_id'));
+
+// Education — HIGH
+ok('education: student id + gpa', has('Student ID 004921, GPA 2.7', 'education'));
+ok('education: transcript', has('attached is my transcript', 'education'));
+
+// Workplace / HR — HIGH (also covers salary)
+ok('workplace: PIP', has('Put Alex on a performance improvement plan', 'workplace'));
+ok('workplace: salary', has("Alex's salary is 95000", 'workplace'));
+
+// Special-category (GDPR Art. 9) — HIGH
+ok('special: union rep', has('Employee is a union representative', 'special_category'));
+ok('special: no bare-race FP', !has('I race go-karts on the weekend', 'special_category'));
+
+// Regulated-data signals — HIGH
+ok('regulated: PCI cardholder', has('PCI cardholder data attached', 'regulated'));
+ok('regulated: HIPAA', has('this falls under HIPAA', 'regulated'));
+
+// Restriction / consent — HIGH (a single strong term fires)
+ok('restriction: not-for-third-party', has('Confidential — not for third-party processing', 'restriction'));
+ok('restriction: strong phrase fires', has('strictly confidential — do not forward', 'restriction'));
+ok('restriction: lone confidential no longer fires (noise reduced)', !has('please keep this confidential', 'restriction'));
+ok('restriction does not make it "legal"', !has('please keep this confidential', 'legal')); // legal still needs 2
+
+// Company secrets — HIGH
+ok('company: acquisition target', has('Q3 acquisition target list', 'company_secret'));
+ok('company: no bare-roadmap FP', !has('the project roadmap looks good', 'company_secret'));
+
+// Children's data — HIGH
+ok('children: age + school', has('Lucas, age 9, attends Lincoln Elementary', 'children'));
+ok('children: safeguarding term', has('safeguarding notes for the pupil', 'children'));
+
+// Location / tracking — HIGH
+ok('location: badge entry', has('Employee badge entry: Berlin office, 08:13', 'location'));
+ok('location: gps coords', has('meet at 52.5200, 13.4050 tonight', 'location'));
+
+// File paths — MEDIUM
+ok('file path: windows', has('see C:\\Users\\Mike\\report.docx', 'file_path'));
+
+// Labeled / alphanumeric identifiers — HIGH
+ok('labeled id: alphanumeric account', has('Customer account #A83921 reported fraud', 'account_number'));
+
+// new masks
+ok('mask gov_id last4', mask.gov_id('YA1234567') === '••••4567');
+ok('mask file_path basename', mask.file_path('C:\\Users\\Mike\\report.docx') === '…\\report.docx');
+
 /* ----------------------------------------------------------------- masking */
 ok('mask email', mask.email('sarah.chen@northwind.io') === 'sarah.chen@…');
 ok('mask account', mask.account_number('#88291') === '#88•••');
