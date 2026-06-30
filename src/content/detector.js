@@ -38,6 +38,7 @@ const now =
 export const CATEGORY = {
   api_key:        { type: 'API key',          summary: 'API key',           redactLabel: '[API_KEY]', risk: 'critical' },
   password:       { type: 'Password',         summary: 'password',          redactLabel: '[SECRET]',  risk: 'critical' },
+  connection_string:{ type: 'Database URL',   summary: 'database URL',      redactLabel: '[DB_URL]',  risk: 'critical' },
   credit_card:    { type: 'Credit card',      summary: 'credit card',       redactLabel: '[CARD]',    risk: 'critical' },
   ssn:            { type: 'SSN',              summary: 'SSN',               redactLabel: '[SSN]',     risk: 'critical' },
   account_number: { type: 'Account number',   summary: 'account number',    redactLabel: '[ACCOUNT]', risk: 'high' },
@@ -112,6 +113,10 @@ export const mask = {
   },
   password() {
     return '••••••••';
+  },
+  connection_string(raw) {
+    // postgres://user:pass@host  ->  postgres://user:••••@host (hide only the password)
+    return String(raw).replace(/(:\/\/[^\s:/@]+:)[^\s:/@]+(@)/, '$1' + DOTS + '$2');
   },
   credit_card(raw) {
     const d = raw.replace(/\D/g, '');
@@ -193,6 +198,8 @@ const RE = {
   // value is a placeholder. Compound secret words only, to avoid PRIMARY_KEY/MAX_TOKENS.
   envSecret:
     /\b([A-Z][A-Z0-9_]*(?:SECRET|PASSWORD|PASSWD|PRIVATE_KEY|API_KEY|ACCESS_KEY|SECRET_KEY|CLIENT_SECRET|AUTH_TOKEN|ACCESS_TOKEN|API_TOKEN|CREDENTIALS?)[A-Z0-9_]*)\s*=/g,
+  // Connection string with an embedded password: scheme://user:pass@host (postgres, mysql, mongodb+srv, redis, amqp, https…).
+  connectionUri: /\b[a-z][a-z0-9+.-]{1,15}:\/\/[^\s:/@]+:[^\s:/@]+@[^\s/?#]+/gi,
   address:
     /\b\d{1,6}\s+[A-Za-z0-9.\s]{1,40}?\b(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Terrace|Ter|Circle|Cir|Highway|Hwy|Parkway|Pkwy)\b\.?(?:,?\s*[A-Za-z\s]+,?\s*[A-Z]{2}\s*\d{5}(?:-\d{4})?)?/gi,
   currency: /(?:USD|EUR|GBP|\$|€|£)\s?\d{1,3}(?:,\d{3})+(?:\.\d{2})?\b/g,
@@ -333,6 +340,7 @@ export function detect(text) {
   for (const m of text.matchAll(RE.envSecret)) {
     raw.push({ category: 'password', rawValue: m[1], start: m.index, end: m.index + m[1].length });
   }
+  pushAll(raw, RE.connectionUri, 'connection_string', text);
   pushAll(raw, RE.ccCandidate, 'credit_card', text, (m) => luhnValid(m[0].replace(/\D/g, '')));
   pushAll(raw, RE.ssn, 'ssn', text);
   // Government IDs (passport, driver's license, national/residence/tax IDs).

@@ -190,6 +190,15 @@ ok('req: env secret placeholder is critical', detect('AWS_SECRET_ACCESS_KEY=...'
 // Env-secret false-positive guards (must NOT flag ordinary uppercase config):
 ok('req: PRIMARY_KEY not a secret', !has('PRIMARY_KEY = id', 'password'));
 ok('req: MAX_TOKENS not a secret', !has('MAX_TOKENS=100', 'password'));
+// Database / connection-string URLs with embedded credentials — CRITICAL
+ok('db url: postgres creds', has('postgres://admin:s3cr3t@db.example.com:5432/app', 'connection_string'));
+ok('db url: critical', detect('postgres://admin:s3cr3t@db.example.com/app').riskLevel === 'critical');
+ok('db url: mongodb+srv', has('mongodb+srv://u:p4ssw0rd@cluster0.mongodb.net/db', 'connection_string'));
+ok('db url: redis', has('redis://default:abc123XYZ@redis-host:6379', 'connection_string'));
+ok('db url: no creds NOT flagged', !has('connect to postgres://localhost:5432/app', 'connection_string'));
+ok('db url: plain https NOT flagged', !has('visit https://example.com/home', 'connection_string'));
+ok('db url: password masked', mask.connection_string('postgres://admin:s3cr3t@db.example.com/app') === 'postgres://admin:••••@db.example.com/app');
+ok('db url: raw password never shown', detect('postgres://admin:s3cr3t@db/app').matches.every((m) => !m.maskedValue.includes('s3cr3t')));
 
 /* ----------------------------------------------------------------- masking */
 ok('mask email', mask.email('sarah.chen@northwind.io') === 'sarah.chen@…');
