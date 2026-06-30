@@ -33,6 +33,13 @@
     "trade secret"
   ],
 
+  "legalStrongKeywords": [
+    "settlement offer", "settlement agreement", "settlement terms",
+    "settlement amount", "terms of settlement", "non-disclosure agreement",
+    "letter of intent", "cease and desist", "power of attorney",
+    "master service agreement", "statement of work", "breach of contract"
+  ],
+
   "sourceCodeKeywords": [
     "function ", "const ", "let ", "var ", "import ", "export ", "class ",
     "def ", "public static", "private ", "#include", "package ", "return ",

@@ -189,6 +189,10 @@ const RE = {
   bearer: /\b(?:Bearer\s+|token\s*=\s*["']?)([A-Za-z0-9._-]{16,})/g,
   passwordAssign:
     /\b(password|passwd|pwd|secret|api[_-]?key|access[_-]?token|auth[_-]?token|client[_-]?secret|private[_-]?key|passphrase)\b\s*["']?\s*[:=]\s*["']?([^\s"',;]{4,})/gi,
+  // Env-var-style secret NAME (SCREAMING_SNAKE) before '=' — flags even when the
+  // value is a placeholder. Compound secret words only, to avoid PRIMARY_KEY/MAX_TOKENS.
+  envSecret:
+    /\b([A-Z][A-Z0-9_]*(?:SECRET|PASSWORD|PASSWD|PRIVATE_KEY|API_KEY|ACCESS_KEY|SECRET_KEY|CLIENT_SECRET|AUTH_TOKEN|ACCESS_TOKEN|API_TOKEN|CREDENTIALS?)[A-Z0-9_]*)\s*=/g,
   address:
     /\b\d{1,6}\s+[A-Za-z0-9.\s]{1,40}?\b(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Terrace|Ter|Circle|Cir|Highway|Hwy|Parkway|Pkwy)\b\.?(?:,?\s*[A-Za-z\s]+,?\s*[A-Z]{2}\s*\d{5}(?:-\d{4})?)?/gi,
   currency: /(?:USD|EUR|GBP|\$|€|£)\s?\d{1,3}(?:,\d{3})+(?:\.\d{2})?\b/g,
@@ -326,6 +330,9 @@ export function detect(text) {
     const start = m.index + m[0].lastIndexOf(val);
     raw.push({ category: 'password', rawValue: val, start, end: start + val.length });
   }
+  for (const m of text.matchAll(RE.envSecret)) {
+    raw.push({ category: 'password', rawValue: m[1], start: m.index, end: m.index + m[1].length });
+  }
   pushAll(raw, RE.ccCandidate, 'credit_card', text, (m) => luhnValid(m[0].replace(/\D/g, '')));
   pushAll(raw, RE.ssn, 'ssn', text);
   // Government IDs (passport, driver's license, national/residence/tax IDs).
@@ -357,6 +364,7 @@ export function detect(text) {
   const finHits = detectKeywords(raw, text, RULES.financialKeywords, 'financial');
   if (!finHits) pushAll(raw, RE.currency, 'financial', text);
   detectKeywords(raw, text, RULES.legalKeywords, 'legal', { minDistinct: 2 });
+  detectKeywords(raw, text, RULES.legalStrongKeywords, 'legal'); // strong single-term legal phrases
   // New protected-data categories (US + EU).
   detectKeywords(raw, text, RULES.educationKeywords, 'education');
   detectKeywords(raw, text, RULES.workplaceKeywords, 'workplace');

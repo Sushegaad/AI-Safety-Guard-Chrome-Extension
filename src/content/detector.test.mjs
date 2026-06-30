@@ -159,6 +159,38 @@ ok('labeled id: alphanumeric account', has('Customer account #A83921 reported fr
 ok('mask gov_id last4', mask.gov_id('YA1234567') === '••••4567');
 ok('mask file_path basename', mask.file_path('C:\\Users\\Mike\\report.docx') === '…\\report.docx');
 
+/* ----------------------------- US + EU protected-data requirements matrix */
+// Each of the 16 requested categories must flag (non-safe) with a sensible label.
+const REQUIREMENTS = [
+  ['personal identifier (address)', 'Anna Keller, 24 King Street, London', 'address'],
+  ['government ID — SSN', 'SSN: 123-45-6789', 'ssn'],
+  ['government ID — passport', 'Passport: YA1234567', 'gov_id'],
+  ['financial — IBAN', 'IBAN: DE89 3704 0044 0532 0130 00', 'financial'],
+  ['health', 'Patient has Type 1 diabetes and takes insulin', 'health'],
+  ['student & education', 'Student ID 004921, GPA 2.7', 'education'],
+  ["children's data", 'Lucas, age 9, attends Lincoln Elementary', 'children'],
+  ['special-category (GDPR Art. 9)', 'Employee is a union representative', 'special_category'],
+  ['workplace-sensitive', 'Put Alex on a performance improvement plan', 'workplace'],
+  ['customer & support', 'Customer account #A83921 reported fraud', 'account_number'],
+  ['legal — settlement', 'Settlement offer is $85,000', 'legal'],
+  ['company secrets', 'Q3 acquisition target list', 'company_secret'],
+  ['credentials — env placeholder', 'AWS_SECRET_ACCESS_KEY=...', 'password'],
+  ['location & tracking', 'Employee badge entry: Berlin office, 08:13', 'location'],
+  ['document metadata — file path', 'C:\\Users\\Mike\\report.docx', 'file_path'],
+  ['regulated signal — PCI', 'PCI cardholder data', 'regulated'],
+  ['consent / restriction', 'Confidential — not for third-party processing', 'restriction'],
+];
+for (const [label, text, category] of REQUIREMENTS) {
+  ok(`req: ${label} is flagged`, detect(text).riskLevel !== 'safe');
+  ok(`req: ${label} -> ${category}`, has(text, category));
+}
+// The two label-gap fixes specifically:
+ok('req: settlement reads as legal (not just financial)', has('Settlement offer is $85,000', 'legal'));
+ok('req: env secret placeholder is critical', detect('AWS_SECRET_ACCESS_KEY=...').riskLevel === 'critical');
+// Env-secret false-positive guards (must NOT flag ordinary uppercase config):
+ok('req: PRIMARY_KEY not a secret', !has('PRIMARY_KEY = id', 'password'));
+ok('req: MAX_TOKENS not a secret', !has('MAX_TOKENS=100', 'password'));
+
 /* ----------------------------------------------------------------- masking */
 ok('mask email', mask.email('sarah.chen@northwind.io') === 'sarah.chen@…');
 ok('mask account', mask.account_number('#88291') === '#88•••');
