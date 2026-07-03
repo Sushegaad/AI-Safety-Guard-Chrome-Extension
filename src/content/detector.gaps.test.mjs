@@ -7,6 +7,7 @@
  * ========================================================================== */
 
 import { detect, ibanValid, stripZeroWidth, mask, shannonEntropy } from './detector.js';
+import { redact } from './redactor.js';
 
 let pass = 0;
 let fail = 0;
@@ -140,6 +141,45 @@ ok('regression: fixture modal rows unchanged',
   JSON.stringify(['account_number', 'api_key', 'email']));
 ok('regression: offsets slice cleanly on plain text',
   r.matches.every((m) => FIXTURE.slice(m.start, m.end) === m.rawValue));
+
+/* --------------------------------- redaction completeness (v1.1.1 fix) ---- */
+// THE invariant behind "Looks good — send": redact(detect(text)) must rescan
+// SAFE. A single leftover keyword/name kept the button permanently disabled.
+function rescanAfterRedact(text) {
+  const r = detect(text);
+  const { redactedText } = redact(text, r.matches);
+  return detect(redactedText);
+}
+{
+  // Every keyword occurrence gets a span (first visible, rest hidden).
+  const twoHits = 'attached is my transcript and my GPA is 2.7';
+  const eduSpans = detect(twoHits).matches.filter((m) => m.category === 'education');
+  ok('redact-complete: all keyword occurrences get spans', eduSpans.length === 2);
+  ok('redact-complete: exactly one modal row per keyword category', eduSpans.filter((m) => m.showInModal).length === 1);
+  ok('redact-complete: keyword rescan safe', rescanAfterRedact(twoHits).riskLevel === 'safe');
+
+  // Every name-shaped span is redacted (a leftover name re-fired customer_data).
+  const names = 'customer Anna Keller asked Alex Vance about jane@x.com';
+  const nameSpans = detect(names).matches.filter((m) => m.category === 'customer_data');
+  ok('redact-complete: all names get spans', nameSpans.length === 2);
+  ok('redact-complete: names rescan safe', rescanAfterRedact(names).riskLevel === 'safe');
+
+  // Redaction labels never re-trigger detection ("[IBAN]" contains "iban").
+  ok('redact-complete: [IBAN] label is inert', detect('transfer to [IBAN] today').riskLevel === 'safe');
+
+  // The full reported scenario end-to-end.
+  const scenario =
+    'Bob Smith\n\nAs part of the upcoming Q3 acquisition target list, HR director Anna Keller ' +
+    '(contactable at anna.keller@corp.example or via her office line 555-123-4567) reviewed the ' +
+    'personnel file for contractor Alex Vance, who holds Student ID 004921 at London Columbia College ' +
+    'and maintains a current GPA of 3.7. He inadvertently pasted an active credential into a public ' +
+    'customer support chat regarding account #88291. Additionally, the file contained restricted ' +
+    'health data noting that Alex requires scheduling accommodations for Type 1 diabetes management, ' +
+    'alongside a payroll routing record showing wire transfer IBAN: DE89 3704 0044 0532 0130 00. ' +
+    'Because this document contains protected health information (PHI) subject to UK GDPR regulations, ' +
+    'it bears the strict restriction: Confidential — not for third-party processing.';
+  ok('redact-complete: reported scenario rescans safe', rescanAfterRedact(scenario).riskLevel === 'safe');
+}
 
 /* ----------------------------------------------------------------- report */
 console.log(`\n${pass} passed, ${fail} failed`);

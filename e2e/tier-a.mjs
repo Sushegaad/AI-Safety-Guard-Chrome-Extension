@@ -59,6 +59,25 @@ for (const site of SITES) {
     await page.waitForFunction(() => window.__sent === true, null, { timeout: 3000 });
     r.ok(`${site.id}: send anyway completes the send`, true);
 
+    // 5. Programmatic composer clear (what sites do after a send — no 'input'
+    //    event) must not leave a stale risk badge. Clear silently, poke the DOM
+    //    so the MutationObserver recheck fires, and expect the badge to hide.
+    await page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if ('value' in el && el.tagName === 'TEXTAREA') el.value = '';
+      else el.textContent = '';
+      document.body.appendChild(document.createElement('div')); // trigger observer
+    }, inputSel);
+    await page.waitForFunction(
+      () => {
+        const b = document.getElementById('asg-badge-host');
+        return !b || b.style.display === 'none';
+      },
+      null,
+      { timeout: 5000 }
+    );
+    r.ok(`${site.id}: badge clears after programmatic input clear`, true);
+
     r.ok(`${site.id}: no extension console errors`, errors.length === 0);
   } catch (e) {
     r.ok(`${site.id}: FAILED — ${String(e).split('\n')[0]}`, false);

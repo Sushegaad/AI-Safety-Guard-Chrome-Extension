@@ -360,22 +360,29 @@ function detectKeywords(out, text, list, category, opts = {}) {
     let from = 0;
     let idx;
     while ((idx = lower.indexOf(kw, from)) !== -1) {
+      // Skip our own redaction labels: "[IBAN]" must not re-fire the "iban"
+      // keyword on the post-redact rescan (it kept the send button disabled).
+      const isRedactLabel = text[idx - 1] === '[' && text[idx + kw.length] === ']';
       // word-ish boundary check for short alpha keywords
-      hits.push({ kw, idx });
+      if (!isRedactLabel) hits.push({ kw, idx });
       from = idx + kw.length;
     }
   }
   if (hits.length === 0) return 0;
   if ((opts.minDistinct || 1) > new Set(hits.map((h) => h.kw)).size) return 0;
-  // Emit one finding anchored at the first hit (keyword categories are signals,
-  // not spans to redact individually).
+  // Emit a span for EVERY hit so B1 redaction removes all of them and the
+  // post-redact rescan can actually come back safe (a single leftover keyword
+  // used to keep "Looks good — send" permanently disabled). Only the first
+  // hit is a modal row; the rest are hidden redaction-support spans.
   hits.sort((a, b) => a.idx - b.idx);
-  const first = hits[0];
-  out.push({
-    category,
-    rawValue: text.slice(first.idx, first.idx + first.kw.length),
-    start: first.idx,
-    end: first.idx + first.kw.length,
+  hits.forEach((h, i) => {
+    out.push({
+      category,
+      rawValue: text.slice(h.idx, h.idx + h.kw.length),
+      start: h.idx,
+      end: h.idx + h.kw.length,
+      ...(i > 0 ? { showInModal: false } : {}),
+    });
   });
   return hits.length;
 }
@@ -383,14 +390,8 @@ function detectKeywords(out, text, list, category, opts = {}) {
 // Children's data: explicit safeguarding/custody terms fire on their own;
 // otherwise require a minor age co-occurring with a school/childcare cue.
 function detectChildren(out, text) {
-  const lower = text.toLowerCase();
-  for (const kw of RULES.childrenKeywords) {
-    const idx = lower.indexOf(kw);
-    if (idx !== -1) {
-      out.push({ category: 'children', rawValue: text.slice(idx, idx + kw.length), start: idx, end: idx + kw.length });
-      return;
-    }
-  }
+  // Keyword pass emits every occurrence (redaction completeness, see above).
+  if (detectKeywords(out, text, RULES.childrenKeywords, 'children')) return;
   const ageM = text.match(/\bage[d]?\s*(1?\d)\b/i);
   const school = /\b(?:elementary|primary school|kindergarten|preschool|middle school|day\s?care|nursery|grade\s*[1-9]|year\s*[1-9]|pupil|schoolchild)\b/i.exec(text);
   if (ageM && parseInt(ageM[1], 10) <= 17 && school) {
@@ -592,10 +593,12 @@ export function detect(input) {
   const hasTicket = /\bticket\s*#?\s*\d{3,}\b/i.test(text) || /\bcustomer\b/i.test(text);
   if (hasIdentifier || hasTicket) {
     const STOP = new Set(['Dear', 'Hi', 'Hello', 'Best', 'Regards', 'Thanks', 'Thank', 'The', 'This', 'From', 'To']);
+    // Emit EVERY name-shaped span (all hidden from the modal) so redaction
+    // replaces all of them — a leftover name would otherwise re-fire on the
+    // post-redact rescan and block "Looks good — send".
     for (const m of text.matchAll(RE.name)) {
       if (STOP.has(m[1])) continue;
       raw.push({ category: 'customer_data', rawValue: m[0], start: m.index, end: m.index + m[0].length, showInModal: false });
-      break; // one representative name is enough
     }
   }
 

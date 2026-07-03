@@ -155,6 +155,10 @@ function openModal(result, text) {
       submit: () => {
         suppressUntil = nowMs() + 400; // allow exactly the send we trigger next
         doSubmit();
+        // Sites clear the composer programmatically after a send (no 'input'
+        // event fires), which used to leave a stale risk badge over an empty
+        // box. Re-scan once the site has had a moment to clear.
+        setTimeout(runScan, 800);
       },
       onCatch: () => {
         try {
@@ -327,9 +331,13 @@ function start() {
     initAttachWatcher(onAttach, fileScanEnabled);
     attach();
     // SPA pages mutate the DOM continuously while streaming answers — debounce the
-    // re-attach check so we don't run it on every mutation batch.
+    // re-attach check so we don't run it on every mutation batch. When the input
+    // is still alive, re-scan it: sites clear or rewrite the composer without
+    // firing 'input' (e.g. after a send), and the badge must follow the real
+    // content, not the last keystroke.
     const recheck = debounce(() => {
       if (!inputEl || !document.contains(inputEl)) attach();
+      else scheduleScan();
     }, 250);
     const observer = new MutationObserver(recheck);
     observer.observe(document.body, { childList: true, subtree: true });
