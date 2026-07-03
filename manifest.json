@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Safety Guard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Warns you before you send private info to an AI tool. Calm, plain-English, never punitive. Scanning happens on your device.",
   "icons": {
     "16": "assets/icons/icon16.png",

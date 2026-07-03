@@ -3,9 +3,9 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.6",
   "version": 1,
-  "serialNumber": "urn:uuid:18710074-8541-4863-abba-c1d748afa2ac",
+  "serialNumber": "urn:uuid:fe770b32-5d8d-4f49-8c8a-0c5dc8e614df",
   "metadata": {
-    "timestamp": "2026-06-29T00:02:17.147Z",
+    "timestamp": "2026-07-03T18:47:07.308Z",
     "tools": {
       "components": [
         {
@@ -82,8 +82,8 @@
     "component": {
       "type": "application",
       "name": "ai-safety-guard",
-      "version": "1.0.0",
-      "bom-ref": "ai-safety-guard@1.0.0",
+      "version": "1.1.0",
+      "bom-ref": "ai-safety-guard@1.1.0",
       "description": "A free Chrome extension that warns you before you send private information to an AI tool. Calm, plain-English, helpful — never punitive. Scanning happens on your device.",
       "licenses": [
         {
@@ -93,7 +93,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/ai-safety-guard@1.0.0",
+      "purl": "pkg:npm/ai-safety-guard@1.1.0",
       "properties": [
         {
           "name": "cdx:npm:package:private",
@@ -111,7 +111,7 @@
       "type": "library",
       "name": "fflate",
       "version": "0.8.3",
-      "bom-ref": "ai-safety-guard@1.0.0|fflate@0.8.3",
+      "bom-ref": "ai-safety-guard@1.1.0|fflate@0.8.3",
       "author": "Arjun Barrett",
       "description": "High performance (de)compression in an 8kB package",
       "licenses": [
@@ -162,7 +162,7 @@
       "type": "library",
       "name": "pdfjs-dist",
       "version": "6.1.200",
-      "bom-ref": "ai-safety-guard@1.0.0|pdfjs-dist@6.1.200",
+      "bom-ref": "ai-safety-guard@1.1.0|pdfjs-dist@6.1.200",
       "description": "Generic build of Mozilla's PDF.js library.",
       "licenses": [
         {
@@ -213,7 +213,7 @@
       "name": "canvas",
       "group": "@napi-rs",
       "version": "1.0.1",
-      "bom-ref": "ai-safety-guard@1.0.0|@napi-rs/canvas@1.0.1",
+      "bom-ref": "ai-safety-guard@1.1.0|@napi-rs/canvas@1.0.1",
       "description": "Canvas for Node.js with skia backend",
       "scope": "optional",
       "licenses": [
@@ -265,7 +265,7 @@
       "name": "canvas-linux-arm64-gnu",
       "group": "@napi-rs",
       "version": "1.0.1",
-      "bom-ref": "ai-safety-guard@1.0.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1",
+      "bom-ref": "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1",
       "description": "Canvas for Node.js with skia backend",
       "scope": "optional",
       "licenses": [
@@ -311,33 +311,89 @@
           "value": "node_modules/@napi-rs/canvas-linux-arm64-gnu"
         }
       ]
+    },
+    {
+      "type": "library",
+      "name": "canvas-linux-arm64-musl",
+      "group": "@napi-rs",
+      "version": "1.0.1",
+      "bom-ref": "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-musl@1.0.1",
+      "description": "Canvas for Node.js with skia backend",
+      "scope": "optional",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "acknowledgement": "declared"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.1",
+      "externalReferences": [
+        {
+          "url": "git+https://github.com/Brooooooklyn/canvas.git",
+          "type": "vcs",
+          "comment": "as detected from PackageJson property \"repository.url\""
+        },
+        {
+          "url": "https://github.com/Brooooooklyn/canvas#readme",
+          "type": "website",
+          "comment": "as detected from PackageJson property \"homepage\""
+        },
+        {
+          "url": "https://github.com/Brooooooklyn/canvas/issues",
+          "type": "issue-tracker",
+          "comment": "as detected from PackageJson property \"bugs.url\""
+        },
+        {
+          "url": "https://registry.npmjs.org/@napi-rs/canvas-linux-arm64-musl/-/canvas-linux-arm64-musl-1.0.1.tgz",
+          "type": "distribution",
+          "hashes": [
+            {
+              "alg": "SHA-512",
+              "content": "08ea81c726d770a6fa80d804863874e2b3c7ae9b0907e9ffe7ea78c923e04169748bec553581e7e2bbf30ad501205a8e818e87109f5468fe9ce16f44330cdfa5"
+            }
+          ],
+          "comment": "as detected from npm-ls property \"resolved\" and property \"integrity\""
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:path",
+          "value": "node_modules/@napi-rs/canvas-linux-arm64-musl"
+        }
+      ]
     }
   ],
   "dependencies": [
     {
-      "ref": "ai-safety-guard@1.0.0",
+      "ref": "ai-safety-guard@1.1.0",
       "dependsOn": [
-        "ai-safety-guard@1.0.0|fflate@0.8.3",
-        "ai-safety-guard@1.0.0|pdfjs-dist@6.1.200"
+        "ai-safety-guard@1.1.0|fflate@0.8.3",
+        "ai-safety-guard@1.1.0|pdfjs-dist@6.1.200"
       ]
     },
     {
-      "ref": "ai-safety-guard@1.0.0|fflate@0.8.3"
+      "ref": "ai-safety-guard@1.1.0|fflate@0.8.3"
     },
     {
-      "ref": "ai-safety-guard@1.0.0|pdfjs-dist@6.1.200",
+      "ref": "ai-safety-guard@1.1.0|pdfjs-dist@6.1.200",
       "dependsOn": [
-        "ai-safety-guard@1.0.0|@napi-rs/canvas@1.0.1"
+        "ai-safety-guard@1.1.0|@napi-rs/canvas@1.0.1"
       ]
     },
     {
-      "ref": "ai-safety-guard@1.0.0|@napi-rs/canvas@1.0.1",
+      "ref": "ai-safety-guard@1.1.0|@napi-rs/canvas@1.0.1",
       "dependsOn": [
-        "ai-safety-guard@1.0.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1"
+        "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1",
+        "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-musl@1.0.1"
       ]
     },
     {
-      "ref": "ai-safety-guard@1.0.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1"
+      "ref": "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-gnu@1.0.1"
+    },
+    {
+      "ref": "ai-safety-guard@1.1.0|@napi-rs/canvas-linux-arm64-musl@1.0.1"
     }
   ]
 }

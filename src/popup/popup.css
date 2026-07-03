@@ -45,6 +45,35 @@ body.asg-root {
   color: var(--color-muted);
   margin: 0 0 var(--space-2);
 }
+.section__hint {
+  font-size: var(--text-xs);
+  color: var(--color-muted);
+  line-height: var(--line-normal);
+  margin: var(--space-2) 0;
+}
+
+/* custom-domain add: inline status (role="status" live region) */
+.domain-status {
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  line-height: var(--line-normal);
+  margin: var(--space-1) 0 var(--space-2);
+  min-height: 0;
+}
+.domain-status:empty {
+  margin: 0;
+}
+.domain-status--error {
+  /* risk-critical fg on the popup surface: 4.6:1+, not conveyed by color
+     alone — the message text itself states the problem. */
+  color: var(--risk-critical-fg);
+}
+
+/* stat outcome split ("· 12 redacted · 3 sent anyway") */
+.stat__split {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
 
 /* segmented control */
 .segmented {

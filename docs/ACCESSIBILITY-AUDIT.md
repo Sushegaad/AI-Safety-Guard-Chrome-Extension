@@ -1,6 +1,6 @@
 # AI Safety Guard — Section 508 / WCAG 2.1 AA Accessibility Audit
 
-Date: June 2026. Version audited: 1.0.0. Standard: WCAG 2.1 Level AA, as incorporated by the Revised Section 508 standards (36 CFR Part 1194). Method: manual source review of the user-facing surfaces plus programmatic color-contrast calculation. This is an internal pre-submission audit; it feeds the VPAT/ACR in `VPAT.md`.
+Date: June 2026 (v1.0.0 audit) with a July 2026 addendum covering the v1.1.0 additions (see "Addendum" at the end). Standard: WCAG 2.1 Level AA, as incorporated by the Revised Section 508 standards (36 CFR Part 1194). Method: manual source review of the user-facing surfaces plus programmatic color-contrast calculation. This is an internal pre-submission audit; it feeds the VPAT/ACR in `VPAT.md`.
 
 ## Scope
 
@@ -116,3 +116,29 @@ Priority order, with rough effort:
 7. F7 optional `aria-describedby` — trivial.
 
 After these, the VPAT can move F1–F6 from "Partially Supports" to "Supports." Add a jsdom-based test asserting the option cards are focusable and the dialog is labelled by its heading so the gate guards against regressions.
+
+---
+
+## Addendum — v1.1.0 surfaces (July 2026)
+
+Version 1.1.0 added interactive surface after the original audit. Reviewed by the same method (manual source review + contrast check of new styles):
+
+### A1 — Per-finding mute buttons in the warning dialog
+
+Each non-critical finding row gains a "Don't warn about this" button (`.asg-mute`). Assessment: keyboard reachable inside the dialog's existing focus trap; named per category via `aria-label` ("Don't warn about Email address again"); rendered as a real `<button>`. **Behavior note (accepted):** activating a mute re-renders the findings list and, via the dialog's `setBody`, focus moves to the first actionable control in the dialog — focus never escapes the dialog or falls to `body`. If every remaining finding is removed, the dialog closes and focus is restored to the composer (the standard close path). Critical-secret rows intentionally have no mute button; this is a product-safety decision, not an accessibility gap.
+
+### A2 — Custom-domain permission flow and status messages (popup)
+
+The add-domain flow now shows inline outcomes (validation errors, "permission declined", success) in a `.domain-status` element with `role="status"` and `aria-live="polite"` — announced without stealing focus (WCAG 4.1.3). Error text states the problem and the correction in words (3.3.1, 3.3.3); the error style adds color (`--risk-critical-fg`, ≥ 4.5:1 on the popup surface) but meaning never relies on color alone. The domain input supports Enter-to-add in addition to the Add button.
+
+### A3 — Muted warnings / unmute section (popup)
+
+A new section lists muted categories with per-row "Unmute" buttons, each labelled with the category name (`aria-label="Unmute Email address warnings"`). Native buttons in the existing labelled-section pattern; no new issues.
+
+### A4 — New popup text styles
+
+`.section__hint`, `.domain-status`, and `.stat__split` are styled from design tokens: hint and split use `--color-muted` (#6B7280, 4.86:1 on the paper background — passes AA for their ≥ 11px text), status body uses `--color-ink`, error state uses `--risk-critical-fg` (4.63:1+). No new contrast failures.
+
+### Addendum verdict
+
+No new findings at Level A or AA. F7 (advisory `aria-describedby` on the disabled send button) remains the only open item, unchanged from v1.0.0. A manual NVDA/VoiceOver pass over the mute → re-render → focus path is recommended as part of the pre-submission screen-reader check.

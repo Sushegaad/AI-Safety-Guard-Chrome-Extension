@@ -1,7 +1,7 @@
 # AI Safety Guard — Privacy Policy
 
 **Effective date:** June 27, 2026
-**Applies to:** AI Safety Guard Chrome Extension (v1.0.0)
+**Applies to:** AI Safety Guard Chrome Extension (v1.1.0)
 
 AI Safety Guard is built on a simple promise: **your prompts are scanned on your own device, and nothing you type is collected, transmitted, or stored by us.** This policy explains exactly what the extension does and does not do with your information.
 

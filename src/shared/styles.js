@@ -158,6 +158,12 @@ export function componentCss() {
   font-weight: var(--weight-medium);
   cursor: pointer;
 }
+/* Per-finding "Don't warn about this" mute control (modal rows). */
+.asg-mute {
+  font-size: var(--text-xs);
+  margin-left: auto;
+  white-space: nowrap;
+}
 
 /* Visible keyboard focus (WCAG 2.4.7) — shared by pages and shadow UI. */
 .asg-btn:focus-visible {

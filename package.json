@@ -1,6 +1,6 @@
 {
   "name": "ai-safety-guard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A free Chrome extension that warns you before you send private information to an AI tool. Calm, plain-English, helpful — never punitive. Scanning happens on your device.",
   "private": true,
   "license": "MIT",

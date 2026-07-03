@@ -4,7 +4,7 @@
 
 Based on VPAT Version 2.5 (Revised Section 508 edition).
 
-This is a self-assessment prepared by the product author, intended to accompany the extension when it is offered to a federal agency. It reflects the source code as of version 1.0.0 (June 2026). The remediation described in `ACCESSIBILITY-AUDIT.md` (findings F1 through F6) has been implemented and is covered by automated tests, and this report reflects that remediated build. It has not yet been validated by an independent third party; an independent evaluation can be arranged on request.
+This is a self-assessment prepared by the product author, intended to accompany the extension when it is offered to a federal agency. It reflects the source code as of version 1.1.0 (July 2026), including the v1.1 additions audited in the addendum to `ACCESSIBILITY-AUDIT.md` (per-category mute controls, the custom-domain permission flow with inline status messages, and the muted-warnings/unmute section). The remediation described in `ACCESSIBILITY-AUDIT.md` (findings F1 through F6) has been implemented and is covered by automated tests, and this report reflects that remediated build. It has not yet been validated by an independent third party; an independent evaluation can be arranged on request.
 
 ---
 
@@ -13,9 +13,9 @@ This is a self-assessment prepared by the product author, intended to accompany 
 | Field | Value |
 |-------|-------|
 | Name | AI Safety Guard |
-| Version | 1.0.0 |
+| Version | 1.1.0 |
 | Product description | A free, on-device Chrome extension (Manifest V3) that warns the user before sensitive information is sent to an AI chat tool. All scanning is local; no user content leaves the browser. |
-| Date | June 2026 |
+| Date | July 2026 |
 | Contact | Hemant Naik, hemant.naik@gmail.com |
 | Evaluation method | Manual source-code review of the popup, onboarding, and warning/redact UI, plus programmatic WCAG color-contrast calculation. Self-assessment. |
 
@@ -40,14 +40,14 @@ This is a self-assessment prepared by the product author, intended to accompany 
 
 | Criteria | Conformance | Remarks |
 |----------|-------------|---------|
-| 1.1.1 Non-text Content | Supports | Icon-only controls (close, remove-domain) have `aria-label`s; the brand mark is decorative and adjacent to a text wordmark. |
+| 1.1.1 Non-text Content | Supports | Icon-only controls (close, remove-domain) have `aria-label`s; the per-finding mute and per-category unmute buttons carry `aria-label`s naming the category; the brand mark is decorative and adjacent to a text wordmark. |
 | 1.2.1–1.2.3 (audio/video) | Not Applicable | No audio or video content. |
 | 1.3.1 Info and Relationships | Supports | Controls and labels are programmatically associated; the popup and onboarding sensitivity controls are wrapped in a labelled `role="group"`, and modal findings use `role="list"`/`role="listitem"`. |
 | 1.3.2 Meaningful Sequence | Supports | DOM order matches visual order. |
 | 1.3.3 Sensory Characteristics | Supports | Instructions do not rely on shape, size, or position alone. |
 | 1.4.1 Use of Color | Supports | Every risk level carries a text label in addition to color. |
 | 1.4.2 Audio Control | Not Applicable | No audio. |
-| 2.1.1 Keyboard | Supports | All controls are keyboard operable, including the onboarding sensitivity options, which are now native `<button>` elements. A regression test asserts this. |
+| 2.1.1 Keyboard | Supports | All controls are keyboard operable, including the onboarding sensitivity options (native `<button>` elements), the per-finding mute buttons inside the warning dialog's focus trap, and the custom-domain input (Enter activates Add). Regression tests assert this. |
 | 2.1.2 No Keyboard Trap | Supports | The warning modal uses an intentional, escapable focus trap (Escape and the close button both dismiss it); focus is restored on close. |
 | 2.1.4 Character Key Shortcuts | Not Applicable | No single-character key shortcuts are defined. |
 | 2.2.1 Timing Adjustable | Not Applicable | No time limits. |
@@ -64,7 +64,7 @@ This is a self-assessment prepared by the product author, intended to accompany 
 | 3.1.1 Language of Page | Supports | `lang="en"` is set on both pages. |
 | 3.2.1 On Focus | Supports | Focus does not trigger a change of context. |
 | 3.2.2 On Input | Supports | Changing a toggle updates a setting without an unexpected context change. |
-| 3.3.1 Error Identification | Not Applicable | No form validation that can fail; an invalid or duplicate custom domain is silently ignored. |
+| 3.3.1 Error Identification | Supports | Custom-domain validation errors (invalid domain, http-only, declined permission) are identified in text next to the field and announced through a `role="status"` live region. |
 | 3.3.2 Labels or Instructions | Supports | Inputs have visible labels or `aria-label`s and placeholder guidance. |
 | 4.1.1 Parsing | Supports | Markup is generated programmatically with unique ids and valid nesting. |
 | 4.1.2 Name, Role, Value | Supports | Native controls expose correct name/role/value; the onboarding options expose their selected state via `aria-pressed`; and the warning dialog is named by its visible heading via `aria-labelledby`. |
@@ -89,9 +89,9 @@ This is a self-assessment prepared by the product author, intended to accompany 
 | 3.1.2 Language of Parts | Supports | Content is single-language (English). |
 | 3.2.3 Consistent Navigation | Not Applicable | Single-view surfaces. |
 | 3.2.4 Consistent Identification | Supports | Repeated components (toggles, buttons) are identified consistently. |
-| 3.3.3 Error Suggestion | Not Applicable | No error conditions presented to the user. |
+| 3.3.3 Error Suggestion | Supports | Validation messages state how to correct the input (e.g. "Enter a full domain, like chat.example.com"; "Only https:// sites are supported"). |
 | 3.3.4 Error Prevention (Legal, Financial, Data) | Not Applicable | No legal, financial, or data-submission transactions. |
-| 4.1.3 Status Messages | Supports | Context changes are conveyed through focus management: onboarding step changes move focus to the new step heading, and a successful redaction enables and moves focus to the send action. |
+| 4.1.3 Status Messages | Supports | The custom-domain status line is a `role="status"` `aria-live="polite"` region, so add/decline/error outcomes are announced without moving focus. Other context changes are conveyed through focus management: onboarding step changes move focus to the new step heading, and a successful redaction enables and moves focus to the send action. |
 
 ---
 
