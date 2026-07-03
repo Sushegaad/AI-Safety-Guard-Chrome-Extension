@@ -15,6 +15,7 @@ export const SITES = [
   {
     id: 'chatgpt',
     label: 'ChatGPT',
+    selectorVersion: 1, // bump on every selector edit + add a CHANGELOG line
     inPopup: true,
     hosts: ['chatgpt.com', 'chat.openai.com'],
     selectors: {
@@ -33,6 +34,7 @@ export const SITES = [
   {
     id: 'claude',
     label: 'Claude',
+    selectorVersion: 1, // bump on every selector edit + add a CHANGELOG line
     inPopup: true,
     hosts: ['claude.ai'],
     selectors: {
@@ -52,6 +54,7 @@ export const SITES = [
   {
     id: 'gemini',
     label: 'Gemini',
+    selectorVersion: 1, // bump on every selector edit + add a CHANGELOG line
     inPopup: true,
     hosts: ['gemini.google.com'],
     selectors: {
@@ -67,6 +70,7 @@ export const SITES = [
   {
     id: 'perplexity',
     label: 'Perplexity',
+    selectorVersion: 1, // bump on every selector edit + add a CHANGELOG line
     inPopup: true,
     hosts: ['www.perplexity.ai'],
     selectors: {
@@ -78,6 +82,7 @@ export const SITES = [
   {
     id: 'copilot',
     label: 'Microsoft Copilot',
+    selectorVersion: 1, // bump on every selector edit + add a CHANGELOG line
     inPopup: false,
     hosts: ['copilot.microsoft.com'],
     selectors: {

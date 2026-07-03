@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<!-- Snapshot of the Perplexity composer DOM (primary selectors from src/shared/sites.js). -->
+<html><head><title>Perplexity fixture</title></head><body>
+  <main>
+    <textarea placeholder="Ask anything..." data-testid="search-input" style="width:600px;height:80px"></textarea>
+    <button aria-label="Submit" type="button">Go</button>
+  </main>
+  <script>
+    window.__sent = false;
+    document.querySelector('button[aria-label="Submit"]').addEventListener('click', () => { window.__sent = true; });
+  </script>
+</body></html>

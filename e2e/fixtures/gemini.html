@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<!-- Snapshot of the Gemini composer DOM (primary selectors from src/shared/sites.js). -->
+<html><head><title>Gemini fixture</title></head><body>
+  <rich-textarea>
+    <div class="ql-editor" contenteditable="true" style="display:block;width:600px;height:80px;border:1px solid #ccc"></div>
+  </rich-textarea>
+  <button class="send-button" aria-label="Send message" type="button">Send</button>
+  <script>
+    window.__sent = false;
+    document.querySelector('button.send-button').addEventListener('click', () => { window.__sent = true; });
+  </script>
+</body></html>

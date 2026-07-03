@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<!-- Snapshot of the Microsoft Copilot composer DOM (primary selectors from src/shared/sites.js). -->
+<html><head><title>Copilot fixture</title></head><body>
+  <main>
+    <textarea id="userInput" placeholder="Message Copilot" style="width:600px;height:80px"></textarea>
+    <button type="submit" title="Submit" aria-label="Submit">Send</button>
+  </main>
+  <script>
+    window.__sent = false;
+    document.querySelector('button[type="submit"]').addEventListener('click', (e) => { e.preventDefault(); window.__sent = true; });
+  </script>
+</body></html>

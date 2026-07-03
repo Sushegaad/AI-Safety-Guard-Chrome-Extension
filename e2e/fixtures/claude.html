@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<!-- Snapshot of the Claude composer DOM (primary selectors from src/shared/sites.js). -->
+<html><head><title>Claude fixture</title></head><body>
+  <fieldset>
+    <div class="ProseMirror" contenteditable="true" style="width:600px;height:80px;border:1px solid #ccc"></div>
+    <button aria-label="Send message" type="button">Send</button>
+  </fieldset>
+  <script>
+    window.__sent = false;
+    document.querySelector('button[aria-label="Send message"]').addEventListener('click', () => { window.__sent = true; });
+  </script>
+</body></html>

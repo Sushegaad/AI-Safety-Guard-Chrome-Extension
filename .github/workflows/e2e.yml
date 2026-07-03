@@ -1,0 +1,105 @@
+# AI Safety Guard — two-tier e2e
+#
+# Tier A (hermetic fixtures): every PR + weekly. Deterministic; failures block.
+# Tier B (live drift probe):  weekly + manual. Advisory; drift files/refreshes
+#                             a pinned issue instead of failing the badge.
+
+name: e2e
+
+on:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  tier-a:
+    name: Tier A — hermetic fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: xvfb-run --auto-servernum npm run e2e
+        env:
+          HEADED: 1 # extensions are most reliable in headed mode under xvfb
+      - name: Upload artifacts (screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tier-a-results
+          path: e2e/results/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  tier-b:
+    name: Tier B — live drift probe (advisory)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Probe live sites
+        id: probe
+        continue-on-error: true # advisory — never fail the badge on live-site drift
+        run: xvfb-run --auto-servernum npm run e2e:live
+        env:
+          HEADED: 1
+      - name: Upload artifacts (report + screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tier-b-results
+          path: e2e/results/
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: File / refresh drift issue
+        if: steps.probe.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let report = [];
+            try { report = JSON.parse(fs.readFileSync('e2e/results/tier-b.json', 'utf8')); } catch {}
+            const drifted = report.filter(r => r.status === 'drift' || r.status === 'no-composer');
+            if (!drifted.length) return;
+
+            const title = `Selector drift: ${drifted.map(d => d.site).join(', ')}`;
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const table = report.map(r =>
+              `| ${r.site} | v${r.selectorVersion} | ${r.status} | ${r.detail.replace(/\|/g, '\\|')} |`).join('\n');
+            const body = [
+              'The weekly live-site probe found selector drift. Screenshots and the JSON report are attached to the run.',
+              '',
+              `Run: ${runUrl}`,
+              '',
+              '| site | selectors | status | detail |',
+              '| --- | --- | --- | --- |',
+              table,
+              '',
+              '**Fix:** update the selectors in `src/shared/sites.js`, bump that site\'s `selectorVersion`, add a CHANGELOG line. Degraded mode (generic heuristics) is covering affected sites in the meantime.',
+            ].join('\n');
+
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: 'open', labels: 'selector-drift',
+            });
+            if (open.length) {
+              await github.rest.issues.update({ ...context.repo, issue_number: open[0].number, title, body });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body, labels: ['selector-drift'] });
+            }

@@ -45,6 +45,9 @@ const generic = {
   getBadgeAnchor: (doc = document) => largestVisibleInput(doc), // anchor = the input itself
 };
 
+/** The generic adapter, exported for degraded-mode fallback (content.js). */
+export const genericAdapter = generic;
+
 // One adapter per registry site, keyed by id.
 export const ADAPTERS = Object.fromEntries(
   SITES.map((s) => [

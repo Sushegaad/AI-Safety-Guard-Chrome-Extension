@@ -14,7 +14,7 @@
 import { detect, detectAsync, filterMatches, CATEGORY, ASYNC_THRESHOLD } from './detector.js';
 import { redact } from './redactor.js';
 import { readInput, writeInput } from './dom-utils.js';
-import { getAdapter } from './sites/index.js';
+import { getAdapter, genericAdapter } from './sites/index.js';
 import { looksLikeSendButton } from './sites/adapter-base.js';
 import { createBadge } from './ui/badge.js';
 import { createModal } from './ui/modal.js';
@@ -29,7 +29,8 @@ import { MSG, withDefaults } from '../shared/storage.js';
 
 const settings = withDefaults({});
 
-const adapter = getAdapter();
+// `let` — may be swapped for the generic adapter in degraded mode (below).
+let adapter = getAdapter();
 const modal = createModal();
 
 let inputEl = null;
@@ -345,6 +346,15 @@ function start() {
             `(contenteditable=${ce}, textarea=${ta}). The site's selectors may have changed, ` +
             `or the composer is in a closed shadow root we can't reach.`
         );
+        // DEGRADED MODE: the site's selectors drifted — fall back to the
+        // generic composer heuristics (largest visible input + send-button
+        // heuristic) instead of silently doing nothing. Keep the original
+        // adapter id so per-site settings still apply.
+        if (adapter.id !== 'custom') {
+          adapter = { ...genericAdapter, id: adapter.id };
+          log.warn(`degraded mode on ${location.host}: using generic composer heuristics`);
+          attach();
+        }
       }
     }, 4000);
   } catch (e) {
