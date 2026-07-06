@@ -36,7 +36,7 @@ jobs:
           HEADED: 1 # extensions are most reliable in headed mode under xvfb
       - name: Upload artifacts (screenshots)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tier-a-results
           path: e2e/results/
@@ -64,7 +64,7 @@ jobs:
           HEADED: 1
       - name: Upload artifacts (report + screenshots)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tier-b-results
           path: e2e/results/
