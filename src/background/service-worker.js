@@ -98,7 +98,7 @@ export async function reconcileCustomDomains(deps = {}) {
 
 /* --- Broadcast settings to every content script -------------------------- */
 async function broadcastSettings(settings) {
-  let tabs = [];
+  let tabs;
   try {
     tabs = await chrome.tabs.query({});
   } catch {

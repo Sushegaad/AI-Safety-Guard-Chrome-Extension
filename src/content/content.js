@@ -305,7 +305,7 @@ async function onAttach(files) {
 
   // Tier 1: extract text on-device and scan it. Escalate if PII is found.
   for (const f of files) {
-    let text = '';
+    let text;
     try {
       text = await getFileText(f);
     } catch {
