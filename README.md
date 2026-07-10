@@ -6,6 +6,10 @@
 
 <p align="center"><b>Think before you send.</b><br />A free Chrome extension that warns you before private information reaches an AI tool. All scanning happens on your device.</p>
 
+## Install
+
+🛡️ **[Get AI Safety Guard on the Chrome Web Store](https://chromewebstore.google.com/detail/ai-safety-guard/ghjnpbnohiidngnjcfkehdnnpbkkhfdp)** — free, no account needed.
+
 ## See it in action
 
 ▶️ **[Watch the 1-minute demo](https://youtu.be/cRWgHaxGqjY)** — type a secret, the badge turns red, the warning opens, one click redacts.
@@ -48,10 +52,13 @@ Everyday AI users, employees using AI at work, students and researchers, freelan
 
 ## Getting started
 
+**Regular install:** add it from the [Chrome Web Store](https://chromewebstore.google.com/detail/ai-safety-guard/ghjnpbnohiidngnjcfkehdnnpbkkhfdp). The setup screen opens on first install — choose your sensitivity and the sites to watch.
+
+**From source (development):**
+
 1. Run `npm install` then `npm run build`.
 2. Open `chrome://extensions` and turn on Developer mode.
 3. Click "Load unpacked" and select the `dist` folder.
-4. The setup screen opens on first install. Choose your sensitivity and the sites to watch.
 
 ### Adding a custom domain (experimental)
 
