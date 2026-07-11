@@ -86,6 +86,16 @@ function drive(msg, sender) {
   drive({ type: MSG.SHIELD_SUBMIT, text: 'draft', send: false, nonce: 'z' }, { id: 'test-ext-id', tab: { id: 9 } });
   ok('relay: insert-without-send forwarded with send=false', tabsSent[0].msg.send === false);
 }
+{
+  // Height report relayed as a sanitized number — never any content.
+  const resp = drive({ type: MSG.SHIELD_RESIZE, height: 312.7, nonce: 'r1' }, { id: 'test-ext-id', tab: { id: 5 } });
+  ok('relay: SHIELD_RESIZE forwarded', resp.ok === true && tabsSent.length === 1 && tabsSent[0].msg.type === MSG.SHIELD_RESIZE);
+  ok('relay: SHIELD_RESIZE carries numeric height + nonce', tabsSent[0].msg.height === 312.7 && tabsSent[0].msg.nonce === 'r1');
+  drive({ type: MSG.SHIELD_RESIZE, height: 'tall; <script>', nonce: 'r2' }, { id: 'test-ext-id', tab: { id: 5 } });
+  ok('relay: SHIELD_RESIZE non-numeric height coerced to 0', tabsSent[0].msg.height === 0);
+  drive({ type: MSG.SHIELD_RESIZE, height: -50, nonce: 'r3' }, { id: 'test-ext-id', tab: { id: 5 } });
+  ok('relay: SHIELD_RESIZE negative height clamped to 0', tabsSent[0].msg.height === 0);
+}
 
 /* ----------------------------------------------------------------- report */
 console.log(`\n${pass} passed, ${fail} failed`);

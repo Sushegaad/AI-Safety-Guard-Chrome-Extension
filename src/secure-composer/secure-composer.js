@@ -76,10 +76,28 @@ function renderFindings(result) {
   }
 }
 
+/* ------------------------------ height report ----------------------------- */
+// Tell the content script how tall this frame needs to be so the typed text
+// and findings stay readable. A px number only — never content (the relay is
+// nonce-tagged like every other shield message).
+const barEl = document.querySelector('.sc__bar');
+const actionsEl = document.querySelector('.sc__actions');
+let lastReportedHeight = 0;
+
+function reportHeight() {
+  const findingsH = findingsEl.hidden ? 0 : Math.min(findingsEl.scrollHeight, 240);
+  const inputH = Math.min(Math.max(input.scrollHeight, 88), 420);
+  const needed = Math.ceil(barEl.offsetHeight + inputH + findingsH + actionsEl.offsetHeight + 8);
+  if (Math.abs(needed - lastReportedHeight) < 8) return; // ignore sub-pixel churn
+  lastReportedHeight = needed;
+  post(MSG.SHIELD_RESIZE, { height: needed });
+}
+
 function scan() {
   const result = applyMutes(detect(readText()));
   lastResult = result;
   renderFindings(result);
+  reportHeight();
   const risky =
     shouldInterrupt(result.riskLevel, SENSITIVITY) &&
     result.matches.some((m) => m.showInModal && CATEGORY[m.category].interrupt !== false);
@@ -141,3 +159,6 @@ input.addEventListener('keydown', (e) => {
 
 // Focus immediately so typing lands here, not in the provider box behind us.
 input.focus();
+
+// Report the initial height once layout (incl. fonts) has settled.
+requestAnimationFrame(reportHeight);

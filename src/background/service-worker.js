@@ -228,11 +228,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // in the provider tab, so sender.tab identifies the originating tab. Relay
   // the approved text to THAT tab's content script — it never travels through
   // the provider page's window object.
-  if (msg && (msg.type === MSG.SHIELD_SUBMIT || msg.type === MSG.SHIELD_CANCEL) && sender.tab && sender.tab.id != null) {
+  if (
+    msg &&
+    (msg.type === MSG.SHIELD_SUBMIT || msg.type === MSG.SHIELD_CANCEL || msg.type === MSG.SHIELD_RESIZE) &&
+    sender.tab &&
+    sender.tab.id != null
+  ) {
     const relay =
       msg.type === MSG.SHIELD_SUBMIT
         ? { type: MSG.SHIELD_INJECT, text: String(msg.text || ''), send: !!msg.send, nonce: msg.nonce }
-        : { type: MSG.SHIELD_CANCEL, nonce: msg.nonce };
+        : msg.type === MSG.SHIELD_RESIZE
+          ? { type: MSG.SHIELD_RESIZE, height: Math.max(0, Number(msg.height) || 0), nonce: msg.nonce }
+          : { type: MSG.SHIELD_CANCEL, nonce: msg.nonce };
     chrome.tabs.sendMessage(sender.tab.id, relay).catch(() => {});
     sendResponse({ ok: true });
     return false;

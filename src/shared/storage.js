@@ -84,6 +84,7 @@ export const MSG = Object.freeze({
   SHIELD_SUBMIT: 'SHIELD_SUBMIT', // iframe -> SW: { text, redacted, send, nonce }
   SHIELD_INJECT: 'SHIELD_INJECT', // SW -> content script: { text, send, nonce }
   SHIELD_CANCEL: 'SHIELD_CANCEL', // iframe -> SW -> content: { nonce }
+  SHIELD_RESIZE: 'SHIELD_RESIZE', // iframe -> SW -> content: { height, nonce } — px number only, never content
 });
 
 export const OUTCOME_ACTIONS = Object.freeze(['redacted', 'sentAnyway', 'edited']);

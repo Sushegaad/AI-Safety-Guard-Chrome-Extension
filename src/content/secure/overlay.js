@@ -46,14 +46,17 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
 
   // The secure composer needs room for its header, findings list and action
   // bar even when the underlying composer has collapsed to a single row.
-  const MIN_HEIGHT = 180;
+  const MIN_HEIGHT = 220;
+  // Height the secure composer reported it needs for its current content
+  // (SHIELD_RESIZE relay). 0 = no report yet.
+  let contentHeight = 0;
 
   function positionOver(el) {
     if (!frame || !el) return;
     const r = el.getBoundingClientRect();
-    // Cover the composer; grow a little downward for the action bar without
-    // pushing the page around (fixed positioning, viewport coords).
-    const desired = Math.max(r.height, 44) + 96;
+    // Cover the composer; grow with the iframe's reported content needs so the
+    // typed text and findings stay readable (fixed positioning, viewport coords).
+    const desired = Math.max(Math.max(r.height, 44) + 96, contentHeight);
     const height = Math.max(MIN_HEIGHT, Math.min(desired, window.innerHeight - 16));
     // Keep the frame fully on-screen: when the composer sits near the bottom
     // of the viewport (in-conversation layout), extend upward instead of
@@ -133,6 +136,7 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
     if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
     frame = null;
     nonce = '';
+    contentHeight = 0;
     // Refocusing the composer fires focusin — suppress the reopen it would
     // otherwise trigger, so the shield doesn't flash back up (or wipe text
     // we just injected).
@@ -147,6 +151,11 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
   // Approved text arrives from the SW relay (SHIELD_INJECT). Validate the nonce.
   function handleRelay(msg) {
     if (!active || !msg || msg.nonce !== nonce) return;
+    if (msg.type === MSG.SHIELD_RESIZE) {
+      contentHeight = Math.max(0, Number(msg.height) || 0);
+      reposition();
+      return;
+    }
     if (msg.type === MSG.SHIELD_CANCEL) {
       close();
       return;
@@ -209,7 +218,10 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
     relayHandler = (msg) => handleRelay(msg);
     try {
       chrome.runtime.onMessage.addListener((msg) => {
-        if (msg && (msg.type === MSG.SHIELD_INJECT || msg.type === MSG.SHIELD_CANCEL)) {
+        if (
+          msg &&
+          (msg.type === MSG.SHIELD_INJECT || msg.type === MSG.SHIELD_CANCEL || msg.type === MSG.SHIELD_RESIZE)
+        ) {
           relayHandler(msg);
         }
       });
