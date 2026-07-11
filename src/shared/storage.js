@@ -34,6 +34,14 @@ export const DEFAULT_SETTINGS = Object.freeze({
   // One-time popup hint when "sent anyway" dominates outcomes (self-tuning
   // nudge, see shouldShowNoiseHint). Set true once dismissed.
   noiseHintDismissed: false,
+  // Shield Mode: per-site opt-in. When on, typing/pasting happens inside an
+  // extension-origin iframe the provider's page scripts cannot read; only
+  // approved (optionally redacted) text is injected into the real composer.
+  // Default OFF everywhere — it changes the typing surface, never silently.
+  shieldMode: {},
+  // One-time per-site "this provider can receive text as you type" capability
+  // notice. Keyed by site id / custom host → true once dismissed.
+  perSiteNoticeSeen: {},
 });
 
 export const RECENT_CATCHES_MAX = 20;
@@ -69,6 +77,13 @@ export const MSG = Object.freeze({
   RECORD_OUTCOME: 'RECORD_OUTCOME', // { action: 'redacted'|'sentAnyway'|'edited' }
   MUTE_CATEGORY: 'MUTE_CATEGORY', // { category } — adds to disabledCategories
   EXTRACT_PDF: 'EXTRACT_PDF', // content -> SW -> offscreen: parse a PDF locally
+  // Shield Mode: the secure-composer iframe sends approved text to the service
+  // worker, which relays it to the originating tab's content script. Routed
+  // via the SW (not window.postMessage) so approved text never crosses the
+  // provider page's window until the content script injects it deliberately.
+  SHIELD_SUBMIT: 'SHIELD_SUBMIT', // iframe -> SW: { text, redacted, send, nonce }
+  SHIELD_INJECT: 'SHIELD_INJECT', // SW -> content script: { text, send, nonce }
+  SHIELD_CANCEL: 'SHIELD_CANCEL', // iframe -> SW -> content: { nonce }
 });
 
 export const OUTCOME_ACTIONS = Object.freeze(['redacted', 'sentAnyway', 'edited']);
@@ -80,6 +95,8 @@ export function withDefaults(stored = {}) {
     ...stored,
     enabledSites: { ...DEFAULT_SETTINGS.enabledSites, ...(stored.enabledSites || {}) },
     outcomes: { ...DEFAULT_SETTINGS.outcomes, ...(stored.outcomes || {}) },
+    shieldMode: { ...(stored.shieldMode || {}) },
+    perSiteNoticeSeen: { ...(stored.perSiteNoticeSeen || {}) },
   };
 }
 
@@ -124,6 +141,17 @@ export function sanitizePatch(patch = {}) {
   if (has('onboardingComplete')) out.onboardingComplete = !!patch.onboardingComplete;
   if (has('catchHistory')) out.catchHistory = !!patch.catchHistory;
   if (has('noiseHintDismissed')) out.noiseHintDismissed = !!patch.noiseHintDismissed;
+  // Per-site boolean maps: keep only string keys with coerced boolean values,
+  // capped so a hostile caller can't bloat storage.
+  for (const key of ['shieldMode', 'perSiteNoticeSeen']) {
+    if (has(key) && patch[key] && typeof patch[key] === 'object') {
+      const clean = {};
+      for (const k of Object.keys(patch[key]).slice(0, 100)) {
+        if (typeof k === 'string' && k.length <= 253) clean[k] = !!patch[key][k];
+      }
+      out[key] = clean;
+    }
+  }
   // History entries are written only by the service worker (recordCatch);
   // external callers may only CLEAR the list, never inject entries.
   if (has('recentCatches') && Array.isArray(patch.recentCatches) && patch.recentCatches.length === 0) {

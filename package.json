@@ -10,7 +10,7 @@
     "prebuild": "node scripts/gen-tokens.mjs",
     "build": "npm run lint && webpack --mode production",
     "watch": "webpack --watch --mode development",
-    "test": "node src/content/detector.test.mjs && node src/content/detector.gaps.test.mjs && node src/content/detector.i18n.test.mjs && node src/content/retune.test.mjs && node src/content/ui.test.mjs && node src/background/phase4.test.mjs && node src/background/custom-domains.test.mjs && node src/content/files/files.test.mjs && node e2e/fixtures.test.mjs",
+    "test": "node src/content/detector.test.mjs && node src/content/detector.gaps.test.mjs && node src/content/detector.i18n.test.mjs && node src/content/retune.test.mjs && node src/content/ui.test.mjs && node src/background/phase4.test.mjs && node src/background/custom-domains.test.mjs && node src/background/shield.test.mjs && node src/content/files/files.test.mjs && node e2e/fixtures.test.mjs",
     "lint": "eslint src && npm run lint:css",
     "lint:css": "stylelint \"src/**/*.css\"",
     "e2e": "node e2e/tier-a.mjs",

@@ -45,13 +45,17 @@
       "128": "assets/icons/icon128.png"
     }
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; base-uri 'none'"
+  },
   "web_accessible_resources": [
     {
       "resources": [
         "assets/fonts/*.woff2",
         "src/shared/tokens.css",
         "src/shared/fonts.css",
-        "assets/icons/*.png"
+        "assets/icons/*.png",
+        "src/secure-composer/secure-composer.html"
       ],
       "matches": [
         "https://chatgpt.com/*",

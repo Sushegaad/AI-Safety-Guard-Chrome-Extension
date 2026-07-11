@@ -31,6 +31,9 @@ export default (env, argv) => {
       'src/content/content': './src/content/content.js',
       'src/popup/popup': './src/popup/popup.js',
       'src/onboarding/onboarding': './src/onboarding/onboarding.js',
+      // Shield Mode secure composer — an extension page loaded in a cross-origin
+      // iframe over the provider's real composer.
+      'src/secure-composer/secure-composer': './src/secure-composer/secure-composer.js',
       // pdf.js lives only in the offscreen document (statically bundled), so the
       // content script has no dynamic chunks and no publicPath dependency.
       'src/offscreen/offscreen': './src/offscreen/offscreen.js',
@@ -52,6 +55,8 @@ export default (env, argv) => {
           { from: 'src/popup/popup.html', to: 'src/popup/popup.html' },
           { from: 'src/popup/popup.css', to: 'src/popup/popup.css' },
           { from: 'src/onboarding/onboarding.html', to: 'src/onboarding/onboarding.html' },
+          { from: 'src/secure-composer/secure-composer.html', to: 'src/secure-composer/secure-composer.html' },
+          { from: 'src/secure-composer/secure-composer.css', to: 'src/secure-composer/secure-composer.css' },
           { from: 'src/offscreen/offscreen.html', to: 'src/offscreen/offscreen.html' },
           { from: 'src/shared/*.css', to: 'src/shared/[name][ext]' },
           { from: 'assets/fonts', to: 'assets/fonts' },

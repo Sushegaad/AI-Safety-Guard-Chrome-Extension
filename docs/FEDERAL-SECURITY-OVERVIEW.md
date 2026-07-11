@@ -28,7 +28,9 @@ The manifest requests only what it uses:
 - `host_permissions` — installed by default for the supported AI tools only, six hosts across five providers (chatgpt.com, chat.openai.com, claude.ai, gemini.google.com, www.perplexity.ai, copilot.microsoft.com). The broad `<all_urls>`-style pattern is **never** in `host_permissions`.
 - `optional_host_permissions` (`https://*/*`) — a runtime-grant ceiling for the custom-domain feature. Nothing under it is granted at install. When a user adds a domain, Chrome prompts for **that one origin**; the grant is per-site, user-approved, and withdrawn automatically when the domain is removed in the popup or revoked in `chrome://extensions` (a service-worker reconciliation step also unregisters the content script when a grant is revoked out-of-band).
 
-There is no `externally_connectable`, no remote code, and no dynamic code execution.
+There is no `externally_connectable`, no remote code, and no dynamic code execution. A `content_security_policy.extension_pages` directive (`script-src 'self'; object-src 'self'`) enforces this at the platform level for all extension pages, including the optional Shield Mode composer.
+
+**Shield Mode (optional, off by default).** For users who want drafts protected even before send, Shield Mode lets them type inside an extension-origin iframe overlaid on the provider's composer. Same-origin policy prevents the provider's page scripts from reading it; only user-approved (optionally redacted) text is relayed through the service worker to the content script and injected into the real composer. It adds no permission (the iframe rides on the existing `web_accessible_resources`), makes no network calls, and stores only a per-site on/off flag.
 
 **Managed-fleet note:** agencies that do not want per-site expansion can disable it wholesale — Chrome Enterprise policy (`ExtensionSettings` → `runtime_blocked_hosts`, or a `blocked_permissions` entry for the optional hosts) prevents any grant beyond the six static sites, with no change to the extension.
 

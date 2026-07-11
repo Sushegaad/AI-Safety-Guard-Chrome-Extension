@@ -18,6 +18,7 @@ import { getAdapter, genericAdapter } from './sites/index.js';
 import { looksLikeSendButton } from './sites/adapter-base.js';
 import { createBadge } from './ui/badge.js';
 import { createModal } from './ui/modal.js';
+import { createShieldOverlay } from './secure/overlay.js';
 import { loadFonts } from './ui/fonts.js';
 import { initAttachWatcher, isImageFile } from './files/attach.js';
 import { extractText } from './files/extract.js';
@@ -32,6 +33,19 @@ const settings = withDefaults({});
 // `let` — may be swapped for the generic adapter in degraded mode (below).
 let adapter = getAdapter();
 const modal = createModal();
+
+// Shield Mode overlay: created once, attached in start(). It reads live settings
+// via settingsRef(); we expose a resolved __shieldOn so the overlay doesn't need
+// site-resolution logic.
+const shield = createShieldOverlay({
+  getComposer: () => inputEl,
+  getSubmitButton: () => adapter.getSubmitButton(),
+  doSubmit: () => {
+    suppressUntil = nowMs() + 400;
+    doSubmit();
+  },
+  settingsRef: () => ({ ...settings, __shieldOn: shieldOn() }),
+});
 
 let inputEl = null;
 let badge = null;
@@ -80,6 +94,17 @@ function siteEnabled() {
     return (settings.customDomains || []).some((d) => host === d || host.endsWith('.' + d));
   }
   return settings.enabledSites[adapter.id] !== false;
+}
+
+// The key under which this site's per-site prefs (shield, notice) are stored:
+// the registry id for supported sites, the hostname for custom domains.
+function siteKey() {
+  return adapter.id === 'custom' ? location.hostname : adapter.id;
+}
+
+// Is Shield Mode enabled for this site? Exposed to the overlay via settingsRef.
+function shieldOn() {
+  return !!(settings.shieldMode && settings.shieldMode[siteKey()]);
 }
 
 /* -------------------------------- scanning ------------------------------- */
@@ -255,6 +280,9 @@ function attach() {
   const anchor = adapter.getBadgeAnchor() || el;
   badge = createBadge(anchor);
   el.addEventListener('input', boundInputListener);
+  // First time the user focuses this site's composer, show the one-time
+  // capability notice (Part A). `{ once: true }` — fires at most once per bind.
+  el.addEventListener('focus', maybeShowCapabilityNotice, { once: true });
   runScan();
   log.info(`bound to input <${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}> on ${location.host}`);
 }
@@ -333,6 +361,36 @@ async function onAttach(files) {
   }
 }
 
+/* ---------------------- capability notice (Part A) ----------------------- */
+// One-time, per-site: warn that AI chat sites can receive text as you type,
+// before send. Honest capability warning (true for every live chat SPA), and
+// the on-ramp to Shield Mode. Shown once per site, then remembered.
+let noticeShown = false;
+function maybeShowCapabilityNotice() {
+  if (noticeShown || !siteEnabled()) return;
+  const key = siteKey();
+  if (shieldOn()) return; // shield already protects them; no need to warn
+  if (settings.perSiteNoticeSeen && settings.perSiteNoticeSeen[key]) return;
+  noticeShown = true;
+  modal.openFile({
+    title: 'Before you type here',
+    subtitle:
+      'AI chat sites can send what you type to their servers before you press ' +
+      'send. AI Safety Guard warns you at send time — and Shield Mode (in the ' +
+      'toolbar popup) lets you type privately, so nothing reaches this site ' +
+      'until you approve it.',
+    note: 'You can turn Shield Mode on per site from the AI Safety Guard popup.',
+  });
+  try {
+    chrome.runtime.sendMessage({
+      type: MSG.SET_SETTINGS,
+      patch: { perSiteNoticeSeen: { ...(settings.perSiteNoticeSeen || {}), [key]: true } },
+    });
+  } catch {
+    /* the local flag prevents a repeat this session regardless */
+  }
+}
+
 let started = false;
 function start() {
   if (started) return;
@@ -342,6 +400,7 @@ function start() {
     loadFonts(); // register embedded fonts CSP-safely (async, fire-and-forget)
     attachInterceptors();
     initAttachWatcher(onAttach, fileScanEnabled);
+    shield.attach(); // Shield Mode overlay (opens on focus when enabled per-site)
     attach();
     // SPA pages mutate the DOM continuously while streaming answers — debounce the
     // re-attach check so we don't run it on every mutation batch. When the input

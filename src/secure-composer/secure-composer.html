@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!-- ============================================================================
+ AI Safety Guard — Secure Composer (Shield Mode)
+ An extension-origin page loaded in a cross-origin iframe over the provider's
+ real composer. The provider's page scripts CANNOT read this input (same-origin
+ policy). Raw text is scanned locally here; only approved/redacted text is
+ relayed (via the service worker) to the content script, which injects it into
+ the provider's real composer. No network code lives here — the privacy audit
+ covers this file.
+============================================================================ -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Safety Guard — Secure Composer</title>
+    <link rel="stylesheet" href="../shared/tokens.css" />
+    <link rel="stylesheet" href="../shared/fonts.css" />
+    <link rel="stylesheet" href="secure-composer.css" />
+  </head>
+  <body>
+    <main class="sc" role="group" aria-label="AI Safety Guard secure composer">
+      <div class="sc__bar">
+        <span class="sc__shield" aria-hidden="true"></span>
+        <span class="sc__bar-text">Shield on — your text stays private until you send</span>
+      </div>
+      <div
+        id="sc-input"
+        class="sc__input"
+        contenteditable="true"
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Type your message. It is scanned on your device and stays private until you approve it."
+        data-placeholder="Type here — protected until you approve"
+      ></div>
+      <div id="sc-findings" class="sc__findings" role="list" hidden></div>
+      <div class="sc__actions">
+        <button id="sc-send" class="sc__btn sc__btn--primary" type="button">Insert &amp; send</button>
+        <button id="sc-insert" class="sc__btn sc__btn--secondary" type="button">Insert into chat</button>
+        <button id="sc-cancel" class="sc__btn sc__btn--link" type="button">Cancel</button>
+      </div>
+    </main>
+    <script src="secure-composer.js"></script>
+  </body>
+</html>

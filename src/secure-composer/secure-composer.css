@@ -1,0 +1,111 @@
+/* ============================================================================
+ * AI Safety Guard — Secure Composer styles (Shield Mode iframe)
+ * Tokens come from tokens.css (loaded first). No hardcoded hex here.
+ * ========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: transparent;
+  font-family: var(--font-ui);
+  color: var(--color-ink);
+}
+
+.sc {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 2px solid var(--color-trust);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+}
+
+/* Honest, always-visible strip so the user knows why this box looks different */
+.sc__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-trust-soft);
+  font-size: var(--text-xs);
+  color: var(--color-trust);
+  flex: 0 0 auto;
+}
+.sc__shield {
+  width: 12px;
+  height: 14px;
+  flex: 0 0 auto;
+  background: var(--color-trust);
+  /* simple shield silhouette via clip-path — no image dependency */
+  clip-path: polygon(50% 0, 100% 22%, 100% 60%, 50% 100%, 0 60%, 0 22%);
+}
+
+.sc__input {
+  flex: 1 1 auto;
+  min-height: 44px;
+  max-height: 40vh;
+  overflow-y: auto;
+  padding: var(--space-3);
+  font-size: var(--text-lg);
+  line-height: var(--line-normal);
+  outline: none;
+}
+.sc__input:empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-muted);
+}
+
+.sc__findings {
+  flex: 0 0 auto;
+  max-height: 30vh;
+  overflow-y: auto;
+  padding: 0 var(--space-3) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.sc__find {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+.sc__find-type { font-size: var(--text-sm); color: var(--color-muted); }
+.sc__find-val { font-size: var(--text-sm); color: var(--color-ink); overflow-wrap: anywhere; }
+.sc__pill {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.sc__pill--medium   { color: var(--risk-medium-fg);   background: var(--risk-medium-bg); }
+.sc__pill--high     { color: var(--risk-high-fg);     background: var(--risk-high-bg); }
+.sc__pill--critical { color: var(--risk-critical-fg); background: var(--risk-critical-bg); }
+
+.sc__actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.sc__btn {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  padding: var(--space-2) var(--space-4);
+  cursor: pointer;
+}
+.sc__btn:focus-visible { outline: 2px solid var(--color-trust); outline-offset: 2px; }
+.sc__btn--primary { background: var(--color-trust); color: var(--color-on-trust); }
+.sc__btn--primary[data-risk="critical"],
+.sc__btn--primary[data-risk="high"] { background: var(--risk-high-fg); }
+.sc__btn--secondary { background: transparent; color: var(--color-ink); border-color: var(--color-border); }
+.sc__btn--link { background: none; border: none; color: var(--color-trust); margin-left: auto; }

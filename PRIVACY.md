@@ -43,6 +43,8 @@ The extension collects **no analytics** and contains **no telemetry**. It makes 
 - **storage** — to save your settings and the counters described above, on your device.
 - **offscreen** — to run the bundled PDF text extractor locally so attached PDFs can be scanned in your browser. It makes no network requests.
 - **scripting** — to activate the scanner on custom domains you explicitly add. It is used for nothing else.
+
+**Shield Mode (optional, off by default):** when you turn on Shield Mode for a site, you type inside a small box that belongs to the extension, not the website. Because it runs on the extension's own origin, the website's scripts cannot read what you type there — the raw text stays on your device until you approve it. Only the text you approve (optionally with sensitive values redacted) is placed into the site's real message box. Shield Mode makes no network calls and stores nothing; the only thing saved is your per-site on/off choice.
 - **Host permissions** (specific AI site URLs only) — the extension has access **only** to the supported AI tools. It does **not** have access to all sites.
 - **Optional host permissions** — when you add a custom domain, Chrome asks you to grant access **for that one site**. Nothing is granted by default; you approve each site individually, and removing the domain (or revoking it from `chrome://extensions`) withdraws that access.
 

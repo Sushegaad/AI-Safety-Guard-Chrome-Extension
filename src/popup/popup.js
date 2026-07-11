@@ -148,6 +148,29 @@ export function initPopup(opts = {}) {
       ])
     );
 
+    // --- Shield Mode (per-site private composer) --------------------------
+    const shieldRows = POPUP_SITES.map((s) =>
+      el('label.toggle-row', {}, [
+        el('span.toggle-row__label', { text: s.label }),
+        el('input.switch', {
+          type: 'checkbox',
+          'data-shield': s.id,
+          checked: !!(settings.shieldMode && settings.shieldMode[s.id]),
+          onchange: (e) =>
+            persist({ shieldMode: { ...(settings.shieldMode || {}), [s.id]: e.target.checked } }),
+        }),
+      ])
+    );
+    body.appendChild(
+      el('div.section', {}, [
+        el('p.section__label', { text: 'Shield Mode (experimental)' }),
+        el('p.section__hint', {
+          text: 'Type inside a private box this site can’t read; only approved text reaches it. Off by default.',
+        }),
+        ...shieldRows,
+      ])
+    );
+
     // --- Attachments ---
     body.appendChild(
       el('div.section', {}, [

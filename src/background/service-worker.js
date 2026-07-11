@@ -218,9 +218,23 @@ export async function routeMessage(msg, deps = {}) {
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Defense-in-depth: only accept messages originating from THIS extension
-  // (our content scripts / popup / onboarding). Reject anything else.
+  // (our content scripts / popup / onboarding / secure-composer iframe). Reject
+  // anything else.
   if (sender && sender.id && sender.id !== chrome.runtime.id) {
     sendResponse({ ok: false, error: 'forbidden_sender' });
+    return false;
+  }
+  // Shield Mode relay: the secure-composer iframe is an extension page embedded
+  // in the provider tab, so sender.tab identifies the originating tab. Relay
+  // the approved text to THAT tab's content script — it never travels through
+  // the provider page's window object.
+  if (msg && (msg.type === MSG.SHIELD_SUBMIT || msg.type === MSG.SHIELD_CANCEL) && sender.tab && sender.tab.id != null) {
+    const relay =
+      msg.type === MSG.SHIELD_SUBMIT
+        ? { type: MSG.SHIELD_INJECT, text: String(msg.text || ''), send: !!msg.send, nonce: msg.nonce }
+        : { type: MSG.SHIELD_CANCEL, nonce: msg.nonce };
+    chrome.tabs.sendMessage(sender.tab.id, relay).catch(() => {});
+    sendResponse({ ok: true });
     return false;
   }
   routeMessage(msg)
