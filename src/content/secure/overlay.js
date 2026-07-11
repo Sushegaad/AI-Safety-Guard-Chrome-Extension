@@ -37,19 +37,34 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
   let nonce = '';
   let active = false;
   let relayHandler = null;
+  let resizeObserver = null;
+  let repositionTimer = null;
+  // Guards the close() → composer.focus() → focusin → open() loop: without it
+  // the overlay reopens the instant it closes (and open()'s writeInput('') can
+  // wipe just-injected text before doSubmit fires).
+  let suppressOpenUntil = 0;
+
+  // The secure composer needs room for its header, findings list and action
+  // bar even when the underlying composer has collapsed to a single row.
+  const MIN_HEIGHT = 180;
 
   function positionOver(el) {
     if (!frame || !el) return;
     const r = el.getBoundingClientRect();
     // Cover the composer; grow a little downward for the action bar without
     // pushing the page around (fixed positioning, viewport coords).
-    const height = Math.max(r.height, 44) + 96;
+    const desired = Math.max(r.height, 44) + 96;
+    const height = Math.max(MIN_HEIGHT, Math.min(desired, window.innerHeight - 16));
+    // Keep the frame fully on-screen: when the composer sits near the bottom
+    // of the viewport (in-conversation layout), extend upward instead of
+    // getting squashed against the bottom edge.
+    const top = Math.max(8, Math.min(r.top, window.innerHeight - height - 8));
     Object.assign(frame.style, {
       position: 'fixed',
       left: r.left + 'px',
-      top: r.top + 'px',
+      top: top + 'px',
       width: r.width + 'px',
-      height: Math.min(height, window.innerHeight - r.top - 8) + 'px',
+      height: height + 'px',
       zIndex: '2147483646',
       border: '0',
       colorScheme: 'normal',
@@ -88,23 +103,45 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
 
     window.addEventListener('resize', reposition, true);
     window.addEventListener('scroll', reposition, true);
+    // Follow composer size changes (multi-line growth, post-send collapse)…
+    if (typeof ResizeObserver === 'function') {
+      resizeObserver = new ResizeObserver(reposition);
+      resizeObserver.observe(composer);
+    }
+    // …and position changes from SPA layout shifts, which fire neither
+    // resize nor scroll (messages streaming in above the composer).
+    repositionTimer = setInterval(reposition, 300);
   }
 
   function reposition() {
     if (active) positionOver(getComposer());
   }
 
-  function close() {
+  function close({ refocus = true } = {}) {
     if (!active) return;
     active = false;
     window.removeEventListener('resize', reposition, true);
     window.removeEventListener('scroll', reposition, true);
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+    if (repositionTimer) {
+      clearInterval(repositionTimer);
+      repositionTimer = null;
+    }
     if (frame && frame.parentNode) frame.parentNode.removeChild(frame);
     frame = null;
     nonce = '';
-    // Return focus to the real composer so the user can keep working.
-    const c = getComposer();
-    if (c && typeof c.focus === 'function') c.focus();
+    // Refocusing the composer fires focusin — suppress the reopen it would
+    // otherwise trigger, so the shield doesn't flash back up (or wipe text
+    // we just injected).
+    suppressOpenUntil = Date.now() + 400;
+    if (refocus) {
+      // Return focus to the real composer so the user can keep working.
+      const c = getComposer();
+      if (c && typeof c.focus === 'function') c.focus();
+    }
   }
 
   // Approved text arrives from the SW relay (SHIELD_INJECT). Validate the nonce.
@@ -129,7 +166,9 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
           }, 30);
         }
       }
-      close();
+      // On send, leave focus where the site puts it (refocusing mid-submit
+      // can steal focus from the streaming response or reopen the shield).
+      close({ refocus: !msg.send });
     }
   }
 
@@ -137,6 +176,20 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
   // open the secure overlay before they can type into the provider box.
   function onFocusIn(e) {
     if (!shieldEnabled()) return;
+    if (Date.now() < suppressOpenUntil) return; // programmatic refocus from close()
+    const composer = getComposer();
+    if (!composer) return;
+    if (e.target === composer || (composer.contains && composer.contains(e.target))) {
+      open();
+    }
+  }
+
+  // Focus can already be inside the composer when Shield turns on, or after a
+  // suppressed refocus — then no focusin edge ever fires and keystrokes would
+  // land in the provider box. Catch the first keystroke and raise the shield.
+  function onKeyDown(e) {
+    if (active || !shieldEnabled()) return;
+    if (Date.now() < suppressOpenUntil) return;
     const composer = getComposer();
     if (!composer) return;
     if (e.target === composer || (composer.contains && composer.contains(e.target))) {
@@ -152,6 +205,7 @@ export function createShieldOverlay({ getComposer, getSubmitButton, doSubmit, se
 
   function attach() {
     document.addEventListener('focusin', onFocusIn, true);
+    document.addEventListener('keydown', onKeyDown, true);
     relayHandler = (msg) => handleRelay(msg);
     try {
       chrome.runtime.onMessage.addListener((msg) => {
