@@ -20,12 +20,20 @@ import { CATEGORY } from '../content/detector.js';
 import { RISK, shouldInterrupt } from '../shared/constants.js';
 import { MSG } from '../shared/storage.js';
 import { debounce } from '../shared/debounce.js';
+import { logoDataUri } from '../shared/logo.js';
 
 const params = new URLSearchParams(location.search);
 const NONCE = params.get('n') || '';
 const SENSITIVITY = params.get('s') || 'balanced';
 // Muted categories passed by the content script (comma-separated ids).
 const MUTED = (params.get('m') || '').split(',').filter(Boolean);
+
+// The brand mark in the "Shield on" strip comes from the single logo source
+// (never a hand-drawn approximation).
+const shieldMark = document.querySelector('.sc__shield');
+if (shieldMark) {
+  shieldMark.style.background = `url("${logoDataUri()}") center / contain no-repeat`;
+}
 
 const input = document.getElementById('sc-input');
 const findingsEl = document.getElementById('sc-findings');
