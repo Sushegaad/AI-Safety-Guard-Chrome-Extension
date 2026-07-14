@@ -8,7 +8,7 @@
 
 ## Install
 
-🛡️ **[Get AI Prompt - Security Guard on the Chrome Web Store](https://chromewebstore.google.com/detail/ai-prompt-security-guard/ghjnpbnohiidngnjcfkehdnnpbkkhfdp)** — free, no account needed.
+🛡️ **[Get AI Prompt - Security Guard on the Chrome Web Store](https://chromewebstore.google.com/detail/ai-prompt-security-guard/ipoadoogocaeeijapcohiehibkoihcdn)** — free, no account needed.
 
 ## See it in action
 
@@ -53,7 +53,7 @@ Everyday AI users, employees using AI at work, students and researchers, freelan
 
 ## Getting started
 
-**Regular install:** add it from the [Chrome Web Store](https://chromewebstore.google.com/detail/ai-prompt-security-guard/ghjnpbnohiidngnjcfkehdnnpbkkhfdp). The setup screen opens on first install — choose your sensitivity and the sites to watch.
+**Regular install:** add it from the [Chrome Web Store](https://chromewebstore.google.com/detail/ai-prompt-security-guard/ipoadoogocaeeijapcohiehibkoihcdn). The setup screen opens on first install — choose your sensitivity and the sites to watch.
 
 **From source (development):**
 
